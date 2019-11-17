@@ -2,7 +2,7 @@ import numpy as np
 
 def read(filename):
     # TODO parse info
-    return Data(...)
+    return
 
 class Data:
 
