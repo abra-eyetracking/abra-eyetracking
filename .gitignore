@@ -1,3 +1,4 @@
-abra.egg-info/
+*__pycache__*
+*.egg-info/
 build/
 dist/
