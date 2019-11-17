@@ -3,8 +3,8 @@ import abra
 from time import sleep
 
 
-def test_method1():
-    sleep(.1)
+def test_read1():
+    sleep(.1) 
     assert True
 
 
