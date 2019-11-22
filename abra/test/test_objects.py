@@ -1,14 +1,23 @@
 # object unit testing
 import abra
-from time import sleep
 
 
-def test_object1():
-    sleep(.1)
+def test_data_obj1():
+    # TODO: write test
     assert True
 
 
-def test_object2():
-    sleep(.1)
+def test_data_obj2():
+    # TODO: write test
+    assert True
+
+
+def test_epoch_obj1():
+    # TODO: write test
+    assert True
+
+
+def test_epoch_obj2():
+    # TODO: write test
     assert True
 
