@@ -2,7 +2,7 @@ import numpy as np
 
 def read(filename):
     # TODO parse info
-    return
+    return Data()
 
 class Data:
 
@@ -15,11 +15,10 @@ class Data:
         #   messages (dict)
         #   events (dict)
         #   calibration (dict)
-        return
-    
+        pass
+
     def trial_start():
-        return
+        pass
 
     def trial_end():
-        return
-
+        pass
