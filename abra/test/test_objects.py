@@ -11,9 +11,9 @@ def test_data_object():
     assert data_test.movement.size == 0
     assert data_test.timestamps.size == 0
     assert data_test.sample_rate == 0
-    assert not data_test.messages == True
-    assert not data_test.events == True
-    assert not data_test.calibration == True
+    assert not data_test.messages
+    assert not data_test.events
+    assert not data_test.calibration
 
 def test_data_object_array_dimensions():
     data_test = Data()
@@ -30,9 +30,4 @@ def test_data_object_data_type():
     assert type(data_test.messages) == dict
     assert type(data_test.events) == dict
     assert type(data_test.calibration) == dict
-
-
-def test_object2():
-    sleep(.1)
-    assert True
 
