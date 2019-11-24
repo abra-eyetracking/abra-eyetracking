@@ -1,13 +1,6 @@
 # object unit testing
 
 import abra
-<<<<<<< HEAD
-
-
-def test_data_obj1():
-    # TODO: write test
-    assert True
-=======
 import numpy as np
 from time import sleep
 
@@ -18,9 +11,9 @@ def test_data_object():
     assert data_test.movement.size == 0
     assert data_test.timestamps.size == 0
     assert data_test.sample_rate == 0
-    assert not data_test.messages == True
-    assert not data_test.events == True
-    assert not data_test.calibration == True
+    assert not data_test.messages
+    assert not data_test.events
+    assert not data_test.calibration
 
 def test_data_object_array_dimensions():
     data_test = Data()
@@ -37,20 +30,4 @@ def test_data_object_data_type():
     assert type(data_test.messages) == dict
     assert type(data_test.events) == dict
     assert type(data_test.calibration) == dict
->>>>>>> 20141ec4f0f481141c5464bafe6a74b835b73147
-
-
-def test_data_obj2():
-    # TODO: write test
-    assert True
-
-
-def test_epoch_obj1():
-    # TODO: write test
-    assert True
-
-
-def test_epoch_obj2():
-    # TODO: write test
-    assert True
 

@@ -26,3 +26,4 @@ def test_read_file_opened():
 def test_read_output():
     obj = abra.read('asc/88001.asc')
     assert type(obj) == type(abra.Data())
+
