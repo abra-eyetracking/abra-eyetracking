@@ -1,13 +1,12 @@
 # method unit testing
-import abra
-from time import sleep
+from abra import data
 
 
 def test_read_does_not_exist():
     try:
-        obj = abra.read('abcd*(&3)')
+        data.read('abcd*(&3)')
     except OSError as e:
-        assert e.errno == errno.ENOENT
+        assert isinstance(e, FileNotFoundError)
 
 
 def test_read_bad_filename():
@@ -17,12 +16,14 @@ def test_read_bad_filename():
     #     assert e.errno == errno.ENOENT
     pass
 
+
 def test_read_file_opened():
     """
     A few test cases for file opening with the Python open function.
     """
-    obj = abra.read('asc/88001.asc')
+    obj = data.read('asc/88001.asc')
+
 
 def test_read_output():
-    obj = abra.read('asc/88001.asc')
-    assert type(obj) == type(abra.Data())
+    obj = data.read('asc/88001.asc')
+    assert isinstance(obj, data.Data)
