@@ -22,17 +22,21 @@ def read(filename):
         end_time = ''
         flag = False
         events = []
+        events_dict = {}
+        timestamps_list = []
         messages_dict = {}
         for num, line in enumerate(f, 1):
             elements = line.split()
             if line.startswith('START'):
                 # Find the starting time asshole
                 start_time = elements[1]
-                end_time = ''
-            #only get END messages
+                end_time = ''   #to end "END message input"
+                timestamps_list.append(elements[1])
+            #to only get END messages
             if line.startswith('END'):
                 end_time = elements[1]
                 messages_dict[elements[1]] = elements[2:]
+                timestamps_list.append(elements[1])
                 flag = False
 
             if start_time:
@@ -40,15 +44,35 @@ def read(filename):
                     flag = True
 
             if flag == True:
-                if not is_number(elements[0]):
+                if elements[0] == "MSG":
+
+                    timestamps_list.append(elements[1])
+                elif not is_number(elements[0]):
                     events.append(elements[0])
+                    if str(elements[0] + " " + elements[1]) not in events_dict:
+                        events_dict[str(elements[0] + " " + elements[1])] = elements[2:]
+                        timestamps_list.append(elements[2])
+                    else:
+                        events_dict[str(elements[0] + " " + elements[1])].append(elements[2:])
+                        timestamps_list.append(elements[2])
+                    # print(events_dict)
+                    # input()
+                else:
+                    timestamps_list.append(elements[0])
+                print(timestamps_list)
+                input()
+
             #finds all the END messages that is outputed
             if end_time:
                 if line.startswith('MSG'):
                     if elements[1] in messages_dict:
                         messages_dict[elements[1]].append(elements[2:])
+                        #print(messages_dict[elements[1]])
+                        #input()
                     else:
                         messages_dict[elements[1]] = elements[2:]
+                        #print(messages_dict)
+                        #input()
             #gets all MSG with time stamp as key
             if line.startswith('MSG'):
                 if elements[1] in messages_dict:
