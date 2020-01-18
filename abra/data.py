@@ -44,6 +44,7 @@ def read(filename,mode = "d", start_msg = r"TRIAL \d{1,2} START", end_msg = r"TR
         trial_markers = {"start":[], "end":[]}
         pupil_size_list = []
         movement_list = [[],[]]
+        rate_list = {}
         #Default Mode
         if mode == "d":
             for num, line in enumerate(f, 1):
@@ -67,6 +68,12 @@ def read(filename,mode = "d", start_msg = r"TRIAL \d{1,2} START", end_msg = r"TR
                 if start_time:
                     if line.startswith(start_time):
                         flag = True
+                if "RATE" in line.upper():
+                    elements = line.upper().split()
+                    rate_index = elements.index("RATE")
+                    rate_list[start_time] = elements[rate_index+1]
+
+
                 # check for start
                 if flag == True:
                     # will get pupil size, timestamps, and movements
@@ -123,6 +130,10 @@ def read(filename,mode = "d", start_msg = r"TRIAL \d{1,2} START", end_msg = r"TR
             if start_time:
                 if line.startswith(start_time):
                     flag = True
+            if "RATE" in line.upper():
+                elements = line.upper().split()
+                rate_index = elements.index("RATE")
+                rate_list[start_time] = elements[rate_index+1]
             # check for start marker
             if flag == True:
                 # will get pupil size, timestamps, and movements
