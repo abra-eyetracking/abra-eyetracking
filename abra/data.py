@@ -10,7 +10,7 @@ def is_number(s):
         return False
 
 
-'''
+"""
 Read method will read in the ascii file and extract the data
 "file_name" will take in the name of the file you are trying
 to extract data from
@@ -26,13 +26,13 @@ ex. r"TRIAL \d START"
 "end_msg" will use regular expression to identify the user inputed end
 message makers
 ex. r"TRIAL \d END"
-'''
+"""
 
 
 def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
          end_msg=r"TRIAL \d{1,2} END", autoepoch=False):
     # TODO parse info
-    if not filename.endswith('.asc'):
+    if not filename.endswith(".asc"):
         # Raise an error for checking file name extension
         pass
     if not mode == "d" or not mode == "u":
@@ -40,8 +40,8 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
         pass
 
     with open(filename) as f:
-        start_time = ''
-        end_time = ''
+        start_time = ""
+        end_time = ""
         flag = False
         events = []
         events_dict = {}
@@ -57,19 +57,19 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
             for num, line in enumerate(f, 1):
                 elements = line.split()
 
-                if line.startswith('START'):
+                if line.startswith("START"):
                     start_time = elements[1]
                     trial_markers["start"].append(elements[1])
-                    end_time = ''  # to end "END message input"
+                    end_time = ""  # to end "END message input"
 
                 # to only get END messages
                 # adds to trial_markers, messages_dict, timestamps_list
-                if line.startswith('END'):
+                if line.startswith("END"):
                     end_time = elements[1]
                     trial_markers["end"].append(elements[1])
                     messages_dict[elements[1]] = elements[2:]
                     flag = False
-                    start_time = ''
+                    start_time = ""
 
                 if start_time:
                     if line.startswith(start_time):
@@ -103,7 +103,7 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
 
                 # finds all the END messages that is outputed
                 if end_time:
-                    if line.startswith('MSG'):
+                    if line.startswith("MSG"):
                         if elements[1] in messages_dict:
                             messages_dict[elements[1]].append(elements[2:])
                         else:
@@ -119,7 +119,7 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                 if re.search(start_msg, line[2:]):
                     start_time = elements[1]
                     trial_markers["START"].append(elements[1])
-                    end_time = ''  # to end "END message input"
+                    end_time = ""  # to end "END message input"
 
                 # to only get END messages using user defined marker
                 # adds to trial_markers, messages_dict, timestamps_list
@@ -128,7 +128,7 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                     trial_markers["END"].append(elements[1])
                     messages_dict[elements[1]] = elements[2:]
                     flag = False
-                    start_time = ''
+                    start_time = ""
 
                 if start_time:
                     if line.startswith(start_time):
@@ -160,7 +160,7 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
 
                 # finds all the END messages that is outputed
                 if end_time:
-                    if line.startswith('MSG'):
+                    if line.startswith("MSG"):
                         if elements[1] in messages_dict:
                             messages_dict[elements[1]].append(elements[2:])
                         else:
