@@ -21,9 +21,9 @@ def test_read_file_opened():
     """
     A few test cases for file opening with the Python open function.
     """
-    obj = data.read('test/asc/88001.asc')
+    obj = data.read('abra/test/asc/88001.asc')
 
 
 def test_read_output():
-    obj = data.read('test/asc/88001.asc')
+    obj = data.read('abra/test/asc/88001.asc')
     assert isinstance(obj, data.Data)
