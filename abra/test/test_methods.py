@@ -23,7 +23,25 @@ def test_read_file_opened():
     """
     obj = data.read('abra/test/asc/88001.asc')
 
-
 def test_read_output():
     obj = data.read('abra/test/asc/88001.asc')
+    assert isinstance(obj, data.Data)
+            
+def test_remove_eye_blink():
+    obj = data.read('abra/test/asc/88001.asc')
+    obj = data.remove_eye_blink(obj)
+    if mode=='remove':
+        movement_x_has_nan = (np.nan in obj.movement[:,0])
+        movement_y_has_nan = (np.nan in obj.movement[:,1])
+        pupil_size_has_nan = (np.nan in obj.pupil_size)
+        assert movement_x_has_nan == True
+        assert movement_y_has_nan == True
+        assert pupil_size_has_nan == True
+
+    movement_x_has_no_zero = (0 not in obj.movement[:,0])
+    movement_y_has_no_zero = (0 not in obj.movement[:,1])
+    pupil_size_has_no_zero = (0 not in obj.pupil_size)
+    assert movement_x_has_no_zero == True
+    assert movement_y_has_no_zero == True
+    assert pupil_size_has_no_zero == True
     assert isinstance(obj, data.Data)
