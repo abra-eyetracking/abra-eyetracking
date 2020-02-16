@@ -27,3 +27,11 @@ def test_read_file_opened():
 def test_read_output():
     obj = data.read('abra/test/asc/88001.asc')
     assert isinstance(obj, data.Data)
+
+
+def test_remove_eye_blinks():
+    obj = data.read('abra/test/asc/22205.asc')
+    processed_pupil_size = data.remove_eye_blinks(abra.pupil_size, buffer=10)
+    assert np.sum(np.isnan(processed_pupil_size))
+    processed_pupil_size = data.remove_eye_blinks(abra.pupil_size, buffer=100)
+    assert np.sum(np.isnan(processed_pupil_size))
