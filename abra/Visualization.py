@@ -11,7 +11,6 @@ class Visualization():
 
 data = dt.read("88003.asc")
 
-test_list = data.timestamps[]
 
 
 
