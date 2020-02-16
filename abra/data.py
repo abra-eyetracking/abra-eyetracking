@@ -118,14 +118,14 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                 # finds start time using user defined marker
                 if re.search(start_msg, line[2:]):
                     start_time = elements[1]
-                    trial_markers["START"].append(elements[1])
+                    trial_markers["start"].append(elements[1])
                     end_time = ""  # to end "END message input"
 
                 # to only get END messages using user defined marker
                 # adds to trial_markers, messages_dict, timestamps_list
                 if re.search(end_msg, line[2:]):
                     end_time = elements[1]
-                    trial_markers["END"].append(elements[1])
+                    trial_markers["end"].append(elements[1])
                     messages_dict[elements[1]] = elements[2:]
                     flag = False
                     start_time = ""
