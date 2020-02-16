@@ -59,15 +59,15 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
 
                 if line.startswith("START"):
                     start_time = elements[1]
-                    trial_markers["start"].append(elements[1])
+                    trial_markers["start"].append(int(elements[1]))
                     end_time = ""  # to end "END message input"
 
                 # to only get END messages
                 # adds to trial_markers, messages_dict, timestamps_list
                 if line.startswith("END"):
                     end_time = elements[1]
-                    trial_markers["end"].append(elements[1])
-                    messages_dict[elements[1]] = elements[2:]
+                    trial_markers["end"].append(int(elements[1]))
+                    messages_dict[int(elements[1])] = elements[2:]
                     flag = False
                     start_time = ""
 
@@ -75,22 +75,23 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                     if line.startswith(start_time):
                         flag = True
 
-                if "RATE" in line.upper():
-                    elements = line.upper().split()
-                    rate_index = elements.index("RATE")
-                    rate_list[start_time] = elements[rate_index+1]
-
                 # check for start
                 if flag is True:
                     # will get pupil size, timestamps, and movements
                     if is_number(elements[0]):
-                        timestamps_list.append(elements[0])
-                        pupil_size_list.append(elements[1])
-                        movement_list[0].append(elements[2])  # x-axis
-                        movement_list[1].append(elements[3])  # y-axis
+                        if(elements[1] == "."):
+                            timestamps_list.append(int(elements[0]))
+                            pupil_size_list.append(np.nan)
+                            movement_list[0].append(np.nan)  # x-axis
+                            movement_list[1].append(np.nan)
+                        else:
+                            timestamps_list.append(int(elements[0]))
+                            pupil_size_list.append(float(elements[1]))
+                            movement_list[0].append(float(elements[2]))  # x-axis
+                            movement_list[1].append(float(elements[3]))  # y-axis
                     # Gets all messages between START and END
                     elif elements[0] == "MSG":
-                        messages_dict[elements[1]] = elements[2:]
+                        messages_dict[int(elements[1])] = elements[2:]
                     # Gets all events between START and END
                     elif not is_number(elements[1]):
                         events.append(elements[0])
@@ -105,9 +106,9 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                 if end_time:
                     if line.startswith("MSG"):
                         if elements[1] in messages_dict:
-                            messages_dict[elements[1]].append(elements[2:])
+                            messages_dict[int(elements[1])].append(elements[2:])
                         else:
-                            messages_dict[elements[1]] = elements[2:]
+                            messages_dict[int(elements[1])] = elements[2:]
         # User Defined Mode
         elif mode == "u":
             # initializes the regular expressions for start and end markers
@@ -118,33 +119,36 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                 # finds start time using user defined marker
                 if re.search(start_msg, line[2:]):
                     start_time = elements[1]
-                    trial_markers["start"].append(elements[1])
+                    trial_markers["start"].append(int(elements[1]))
                     end_time = ""  # to end "END message input"
 
                 # to only get END messages using user defined marker
                 # adds to trial_markers, messages_dict, timestamps_list
                 if re.search(end_msg, line[2:]):
                     end_time = elements[1]
-                    trial_markers["end"].append(elements[1])
-                    messages_dict[elements[1]] = elements[2:]
+                    trial_markers["end"].append(int(elements[1]))
+                    messages_dict[int(elements[1])] = elements[2:]
                     flag = False
                     start_time = ""
 
                 if start_time:
                     if line.startswith(start_time):
                         flag = True
-                if "RATE" in line.upper():
-                    elements = line.upper().split()
-                    rate_index = elements.index("RATE")
-                    rate_list[start_time] = elements[rate_index+1]
+
                 # check for start marker
                 if flag is True:
                     # will get pupil size, timestamps, and movements
                     if is_number(elements[0]):
-                        timestamps_list.append(elements[0])
-                        pupil_size_list.append(elements[1])
-                        movement_list[0].append(elements[2])  # x-axis
-                        movement_list[1].append(elements[3])  # y-axis
+                        if(elements[1] == "."):
+                            timestamps_list.append(int(elements[0]))
+                            pupil_size_list.append(np.nan)
+                            movement_list[0].append(np.nan)  # x-axis
+                            movement_list[1].append(np.nan)
+                        else:
+                            timestamps_list.append(int(elements[0]))
+                            pupil_size_list.append(float(elements[1]))
+                            movement_list[0].append(float(elements[2]))  # x-axis
+                            movement_list[1].append(float(elements[3]))  # y-axis
                     # Gets messages between START and END markers
                     elif elements[0] == "MSG":
                         messages_dict[elements[1]] = elements[2:]
@@ -162,9 +166,9 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                 if end_time:
                     if line.startswith("MSG"):
                         if elements[1] in messages_dict:
-                            messages_dict[elements[1]].append(elements[2:])
+                            messages_dict[int(elements[1])].append(elements[2:])
                         else:
-                            messages_dict[elements[1]] = elements[2:]
+                            messages_dict[int(elements[1])] = elements[2:]
 
 
 # remove duplicates
