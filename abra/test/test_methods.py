@@ -1,6 +1,6 @@
 # method unit testing
 from abra import data
-
+import numpy as np
 
 def test_read_does_not_exist():
     try:
