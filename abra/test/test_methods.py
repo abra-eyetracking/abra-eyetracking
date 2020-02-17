@@ -32,6 +32,6 @@ def test_read_output():
 def test_remove_eye_blinks():
     obj = data.read('abra/test/asc/22205.asc')
     processed_pupil_size = data.remove_eye_blinks(obj.pupil_size, buffer=10)
-    assert np.sum(np.isnan(processed_pupil_size))
+    assert np.sum(np.isnan(processed_pupil_size))==0
     processed_pupil_size = data.remove_eye_blinks(obj.pupil_size, buffer=100)
-    assert np.sum(np.isnan(processed_pupil_size))
+    assert np.sum(np.isnan(processed_pupil_size))==0
