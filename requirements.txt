@@ -1,2 +1,3 @@
 abra
 numpy
+scipy
