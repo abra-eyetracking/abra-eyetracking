@@ -37,3 +37,5 @@ def test_data_member_types():
     assert isinstance(obj.calibration, dict)
     assert isinstance(obj.messages, dict)
     assert isinstance(obj.events, dict)
+
+

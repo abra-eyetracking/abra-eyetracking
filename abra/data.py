@@ -1,5 +1,7 @@
 import numpy as np
 import re
+from . import utils
+from scipy.interpolate import interp1d
 
 
 def is_number(s):
@@ -197,6 +199,30 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                 events_dict, trial_markers)
 
 
+"""
+The remove_eye_blinks method replaces the eyeblinks (NAS) with interpolated data, with a buffer of 50 data points and linear spline to do interpolation. ### Linear interpolation is what is supported right now.
+
+"""
+def remove_eye_blinks(pupilsize, buffer=50, interpolate='linear'):
+    # Creating a buffeir
+    pupilsize_ = np.copy(pupilsize)
+    blink_times = np.isnan(pupilsize_)
+    print(np.sum(blink_times))
+    for j in range(len(blink_times)):
+        if blink_times[j]==True:
+            pupilsize_[j-buffer:j+buffer]=np.nan
+    
+    # Interpolate
+    if interpolate=='linear':
+        return utils.linear_interpolate(pupilsize_)
+    else:
+        print("We haven't implement anyother interpolation methods yet")
+        return False
+
+
+"""
+The Data class for the data structure
+"""
 class Data:
 
     def __init__(self, timestamps, pupil_size, movement, sample_rate,
@@ -210,8 +236,9 @@ class Data:
         self.events = events
         self.trial_markers = trial_markers
 
-    def trial_start():
-        pass
 
-    def trial_end():
-        pass
+
+
+
+
+
