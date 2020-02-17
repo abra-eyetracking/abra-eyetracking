@@ -44,7 +44,7 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
         end_time = ""
         flag = False
         events = []
-        events_dict = {}
+        events_dict = {"EBLINK":[], "EFIX":[], "ESACC":[], "SBLINK":[] "SFIX":[] "SSACC":[]}
         timestamps_list = []
         messages_dict = {}
         trial_markers = {"start": [], "end": []}
@@ -97,10 +97,9 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                         events.append(elements[0])
                         # check if event already exist
                         event_name = f"{elements[0]} {elements[1]}"
-                        if event_name not in events_dict:
-                            events_dict[event_name] = elements[2:]
-                        else:
-                            events_dict[event_name].append(elements[2:])
+                        event_list_variable = elements[2:]
+                        event_list_variable = list(map(float,event_list_variable))
+                        events_dict[event_name].append(event_list_variable)
 
                 # finds all the END messages that is outputed
                 if end_time:
@@ -157,10 +156,9 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                         events.append(elements[0])
                         # checks if event already exists
                         event_name = f"{elements[0]} {elements[1]}"
-                        if event_name not in events_dict:
-                            events_dict[event_name] = elements[2:]
-                        else:
-                            events_dict[event_name].append(elements[2:])
+                        event_list_variable = elements[2:]
+                        event_list_variable = list(map(float,event_list_variable))
+                        events_dict[event_name].append(event_list_variable)
 
                 # finds all the END messages that is outputed
                 if end_time:
