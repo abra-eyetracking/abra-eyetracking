@@ -99,6 +99,14 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                         # check if event already exist
                         event_name = f"{elements[0]} {elements[1]}"
                         event_list_variable = elements[2:]
+                        temp_list = []
+                        for var in event_list_variable:
+                            if var == ".":
+                                var = np.nan
+                                temp_list.append(var)
+                            else:
+                                temp_list.append(float(var))
+                        event_list_variable = temp_list
                         event_list_variable = list(map(float,event_list_variable))
                         events_dict[event_name].append(event_list_variable)
 
@@ -158,6 +166,15 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                         # checks if event already exists
                         event_name = f"{elements[0]} {elements[1]}"
                         event_list_variable = elements[2:]
+                        temp_list = []
+                        for var in event_list_variable:
+                            if var == ".":
+                                var = np.nan
+                                temp_list.append(var)
+                            else:
+                                temp_list.append(float(var))
+                        event_list_variable = temp_list
+
                         event_list_variable = list(map(float,event_list_variable))
                         events_dict[event_name].append(event_list_variable)
 
