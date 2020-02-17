@@ -182,6 +182,7 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
     return Data(timestamps, pupil_size, movement, 500, {}, messages_dict,
                 events_dict, trial_markers)
 
+
 """
 The remove_eye_blinks method replaces the eyeblinks (NAS) with interpolated data, with a buffer of 50 data points and linear spline to do interpolation. ### Linear interpolation is what is supported right now.
 
@@ -203,6 +204,9 @@ def remove_eye_blinks(pupilsize, buffer=50, interpolate='linear'):
         return False
 
 
+"""
+The Data class for the data structure
+"""
 class Data:
 
     def __init__(self, timestamps, pupil_size, movement, sample_rate,
