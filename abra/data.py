@@ -44,7 +44,7 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
         end_time = ""
         flag = False
         events = []
-        events_dict = {"EBLINK":[], "EFIX":[], "ESACC":[], "SBLINK":[] "SFIX":[] "SSACC":[]}
+        events_dict = {"EBLINK R":[], "EFIX R":[], "ESACC R":[], "SBLINK R":[], "SFIX R":[], "SSACC R":[]}
         timestamps_list = []
         messages_dict = {}
         trial_markers = {"start": [], "end": []}
