@@ -1,6 +1,6 @@
 import numpy as np
 import re
-import utils
+from . import utils
 from scipy.interpolate import interp1d
 
 
