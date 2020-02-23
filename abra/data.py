@@ -187,8 +187,7 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                             messages_dict[int(elements[1])] = elements[2:]
 
 
-# remove duplicates
-    timestamps_list = list(dict.fromkeys(timestamps_list))
+
     # convert list to numpy array
     timestamps = np.array(timestamps_list)
     pupil_size = np.array(pupil_size_list)
