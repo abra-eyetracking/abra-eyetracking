@@ -219,6 +219,14 @@ def remove_eye_blinks(pupilsize, buffer=50, interpolate='linear'):
         print("We haven't implement anyother interpolation methods yet")
         return False
 
+"""
+time locking into a particular event.
+"""
+
+def time_locking(abra_obj):
+    pass
+    
+
 
 """
 The Data class for the data structure
