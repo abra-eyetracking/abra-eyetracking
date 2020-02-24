@@ -222,9 +222,20 @@ def remove_eye_blinks(pupilsize, buffer=50, interpolate='linear'):
 time locking into a particular event.
 """
 
-def time_locking(abra_obj):
-    pass
-    
+def pupil_size_time_locking(abra_obj, event_timestamps, pre_event=200, post_event=200, baseline=None):
+    tmp = np.empty([len(event_timestamps), int((pre_event+post_event)*abra_obj.sample_rate/1000)+1])
+    for i in range(len(event_timestamps)):
+        idx = (abra_obj.timestamps >= (event_timestamps[i]-pre_event)) & (abra_obj.timestamps <= (event_timestamps[i]+post_event))
+        epoch = abra_obj.pupil_size[idx]
+        if baseline:
+            baseline_idx = (abra_obj.timestamps >= (event_timestamps[i]-pre_event-baseline)) & (abra_obj.timestamps <= (event_timestamps[i]-pre_event))
+            baseline_period = abra_obj.pupil_size[baseline_idx]
+            baseline_mean = np.mean(baseline_period)
+            baseline_std = np.std(baseline_period)
+            epoch = (epoch - baseline_mean)/baseline_std
+        tmp[i,:] = epoch
+    return tmp
+            
 
 
 """
