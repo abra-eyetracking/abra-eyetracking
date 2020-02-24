@@ -2,7 +2,7 @@ import numpy as np
 import re
 from . import utils
 from scipy.interpolate import interp1d
-
+import copy
 
 def is_number(s):
     try:
@@ -202,18 +202,23 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
 The remove_eye_blinks method replaces the eyeblinks (NAS) with interpolated data, with a buffer of 50 data points and linear spline to do interpolation. ### Linear interpolation is what is supported right now.
 
 """
-def remove_eye_blinks(pupilsize, buffer=50, interpolate='linear'):
+def pupil_size_remove_eye_blinks(abra_obj, buffer=50, interpolate='linear', inplace=False):
     # Creating a buffeir
-    pupilsize_ = np.copy(pupilsize)
+    pupilsize_ = np.copy(abra_obj.pupil_size)
     blink_times = np.isnan(pupilsize_)
-    print(np.sum(blink_times))
     for j in range(len(blink_times)):
         if blink_times[j]==True:
             pupilsize_[j-buffer:j+buffer]=np.nan
     
     # Interpolate
     if interpolate=='linear':
-        return utils.linear_interpolate(pupilsize_)
+        interp_pupil_size = utils.linear_interpolate(pupilsize_)
+        if inplace == True:
+            abra_obj.pupil_size = interp_pupil_size
+        elif inplace == False:
+            tmp_obj = copy.deepcopy(abra_obj)
+            tmp_obj.pupil_size = interp_pupil_size
+            return tmp_obj
     else:
         print("We haven't implement anyother interpolation methods yet")
         return False
@@ -223,10 +228,15 @@ time locking into a particular event.
 """
 
 def pupil_size_time_locking(abra_obj, event_timestamps, pre_event=200, post_event=200, baseline=None):
+    # Create an empty array for storing the epoch information
     tmp = np.empty([len(event_timestamps), int((pre_event+post_event)*abra_obj.sample_rate/1000)+1])
+    
+    # Iterate timestamp events get each epoch pupil size
     for i in range(len(event_timestamps)):
         idx = (abra_obj.timestamps >= (event_timestamps[i]-pre_event)) & (abra_obj.timestamps <= (event_timestamps[i]+post_event))
         epoch = abra_obj.pupil_size[idx]
+
+        # Do baselining using the mean and standard deviation of the mean and variance
         if baseline:
             baseline_idx = (abra_obj.timestamps >= (event_timestamps[i]-pre_event-baseline)) & (abra_obj.timestamps <= (event_timestamps[i]-pre_event))
             baseline_period = abra_obj.pupil_size[baseline_idx]
