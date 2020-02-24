@@ -233,6 +233,10 @@ def pupil_size_time_locking(abra_obj, event_timestamps, pre_event=200, post_even
 
     # Iterate timestamp events get each epoch pupil size
     for i in range(len(event_timestamps)):
+        start = event_timestamps[i]-pre_event
+        end = event_timestamps[i]+post_event
+        print(start)
+        print(end)
         idx = (abra_obj.timestamps >= (event_timestamps[i]-pre_event)) & (abra_obj.timestamps <= (event_timestamps[i]+post_event))
         if np.sum(idx) != win_size:
             non_zero_idx = np.nonzero(idx)
