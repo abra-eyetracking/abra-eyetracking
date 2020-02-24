@@ -128,22 +128,21 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                 elements = line.split()
                 # finds start time using user defined marker
                 if re.search(start_msg, line[2:]):
+                    #print(elements)
                     start_time = elements[1]
                     trial_markers["start"].append(int(elements[1]))
-                    end_time = ""  # to end "END message input"
+                    flag=True
+                    continue
 
                 # to only get END messages using user defined marker
                 # adds to trial_markers, messages_dict, timestamps_list
                 if re.search(end_msg, line[2:]):
+                    #print(elements)
                     end_time = elements[1]
                     trial_markers["end"].append(int(elements[1]))
                     messages_dict[int(elements[1])] = elements[2:]
                     flag = False
-                    start_time = ""
-
-                if start_time:
-                    if line.startswith(start_time):
-                        flag = True
+                    continue
 
                 # check for start marker
                 if flag is True:
@@ -181,12 +180,12 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                         events_dict[event_name].append(event_list_variable)
 
                 # finds all the END messages that is outputed
-                if end_time:
-                    if line.startswith("MSG"):
-                        if elements[1] in messages_dict:
-                            messages_dict[int(elements[1])].append(elements[2:])
-                        else:
-                            messages_dict[int(elements[1])] = elements[2:]
+                # if end_time:
+                #     if line.startswith("MSG"):
+                #         if elements[1] in messages_dict:
+                #             messages_dict[int(elements[1])].append(elements[2:])
+                #         else:
+                #             messages_dict[int(elements[1])] = elements[2:]
 
 
 
@@ -209,7 +208,7 @@ def pupil_size_remove_eye_blinks(abra_obj, buffer=50, interpolate='linear', inpl
     for j in range(len(blink_times)):
         if blink_times[j]==True:
             pupilsize_[j-buffer:j+buffer]=np.nan
-    
+
     # Interpolate
     if interpolate=='linear':
         interp_pupil_size = utils.linear_interpolate(pupilsize_)
@@ -229,8 +228,9 @@ time locking into a particular event.
 
 def pupil_size_time_locking(abra_obj, event_timestamps, pre_event=200, post_event=200, baseline=None):
     # Create an empty array for storing the epoch information
-    tmp = np.empty([len(event_timestamps), int((pre_event+post_event)*abra_obj.sample_rate/1000)+1])
-    
+    win_size = int((pre_event+post_event)*abra_obj.sample_rate/1000)
+    tmp = np.empty([len(event_timestamps), win_size])
+
     # Iterate timestamp events get each epoch pupil size
     for i in range(len(event_timestamps)):
         start = event_timestamps[i]-pre_event
@@ -238,9 +238,12 @@ def pupil_size_time_locking(abra_obj, event_timestamps, pre_event=200, post_even
         print(start)
         print(end)
         idx = (abra_obj.timestamps >= (event_timestamps[i]-pre_event)) & (abra_obj.timestamps <= (event_timestamps[i]+post_event))
-        print(np.sum(idx))
+        if np.sum(idx) != win_size:
+            non_zero_idx = np.nonzero(idx)
+            # Explicitly set all values beyond window size to False
+            # Enforcing the length to be the defined window size
+            idx[non_zero_idx[0][0]+win_size:]=False
         epoch = abra_obj.pupil_size[idx]
-        print(epoch.shape)
         # Do baselining using the mean and standard deviation of the mean and variance
         if baseline:
             baseline_idx = (abra_obj.timestamps >= (event_timestamps[i]-pre_event-baseline)) & (abra_obj.timestamps <= (event_timestamps[i]-pre_event))
@@ -250,7 +253,7 @@ def pupil_size_time_locking(abra_obj, event_timestamps, pre_event=200, post_even
             epoch = (epoch - baseline_mean)/baseline_std
         tmp[i,:] = epoch
     return tmp
-            
+
 
 
 """
@@ -268,10 +271,3 @@ class Data:
         self.messages = messages
         self.events = events
         self.trial_markers = trial_markers
-
-
-
-
-
-
-
