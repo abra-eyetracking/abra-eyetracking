@@ -233,9 +233,14 @@ def pupil_size_time_locking(abra_obj, event_timestamps, pre_event=200, post_even
     
     # Iterate timestamp events get each epoch pupil size
     for i in range(len(event_timestamps)):
+        start = event_timestamps[i]-pre_event
+        end = event_timestamps[i]+post_event
+        print(start)
+        print(end)
         idx = (abra_obj.timestamps >= (event_timestamps[i]-pre_event)) & (abra_obj.timestamps <= (event_timestamps[i]+post_event))
+        print(np.sum(idx))
         epoch = abra_obj.pupil_size[idx]
-
+        print(epoch.shape)
         # Do baselining using the mean and standard deviation of the mean and variance
         if baseline:
             baseline_idx = (abra_obj.timestamps >= (event_timestamps[i]-pre_event-baseline)) & (abra_obj.timestamps <= (event_timestamps[i]-pre_event))
