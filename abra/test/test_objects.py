@@ -42,37 +42,37 @@ def test_data_member_types():
 
 def test_trial_object_init():
     obj = data.read("abra/test/asc/88001.asc", mode = 'u')
-    obj = obj.split_by_trial(obj, conditions = [])[0]
+    sess= obj.split_by_trial(obj, conditions = [])[0]
     assert isinstance(obj, trial.trial)
 
 def test_trial_member_dimensions():
     obj = data.read("abra/test/asc/88001.asc", mode = 'u')
-    obj = obj.split_by_trial(obj, conditions = [])[0]
-    assert obj.timestamps.ndim == 1
-    assert obj.pupil_size.ndim == 1
+    trial = obj.split_by_trial(obj, conditions = [])[0]
+    assert trial.timestamps.ndim == 1
+    assert trial.pupil_size.ndim == 1
 
 def test_trial_member_types():
     obj = data.read("abra/test/asc/88001.asc", mode = 'u')
-    obj = obj.split_by_trial(obj, conditions = [])[0]
-    assert isinstance(obj.timestamps, np.ndarray)
-    assert isinstance(obj.pupil_size, np.ndarray)
+    trial = obj.split_by_trial(obj, conditions = [])[0]
+    assert isinstance(trial.timestamps, np.ndarray)
+    assert isinstance(trial.pupil_size, np.ndarray)
 
 def test_session_object_init():
     obj = data.read("abra/test/asc/88001.asc", mode = 'u')
-    obj = obj.split_by_trial(obj)
-    assert isinstance(obj, session.session)
+    sess = obj.split_by_trial(obj)
+    assert isinstance(sess, session.session)
 
 def test_session_member_dimensions():
     obj = data.read("abra/test/asc/88001.asc", mode = 'u')
-    obj = obj.split_by_trial(obj)
+    sess = obj.split_by_trial(obj)
     if (len(conditions == 0)):
-        assert obj.conditions.ndim == 0
+        assert sess.conditions.ndim == 0
     else:
-        assert obj.conditions.ndim == len(obj.trial.ndim)
+        assert sess.conditions.ndim == len(sess.trial.ndim)
 
 def test_session_member_types():
     obj = data.read("abra/test/asc/88001.asc", mode = 'u')
-    obj = obj.split_by_trial(obj)
-    assert isinstance(obj.trials, np.ndarray)
-    assert isinstance(obj.trials[0], trial.trial)
-    assert isinstance(obj.conditions, np.ndarray)
+    sess = obj.split_by_trial(obj)
+    assert isinstance(sess.trials, np.ndarray)
+    assert isinstance(sess.trials[0], trial.trial)
+    assert isinstance(sess.conditions, np.ndarray)
