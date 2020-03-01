@@ -43,7 +43,7 @@ def test_data_member_types():
 def test_trial_object_init():
     obj = data.read("abra/test/asc/88001.asc", mode = 'u')
     sess= obj.split_by_trial()
-    assert isinstance(sess.trials[0], trial.trial)
+    assert isinstance(sess.trials[0], trial.Trial)
 
 def test_trial_member_dimensions():
     obj = data.read("abra/test/asc/88001.asc", mode = 'u')
@@ -68,11 +68,11 @@ def test_session_member_dimensions():
     if (len(sess.conditions == 0)):
         assert sess.conditions.ndim == 0
     else:
-        assert sess.conditions.ndim == len(sess.trials.ndim)
+        assert sess.conditions.ndim == sess.trials.ndim
 
 def test_session_member_types():
     obj = data.read("abra/test/asc/88001.asc", mode = 'u')
     sess = obj.split_by_trial()
     assert isinstance(sess.trials, np.ndarray)
-    assert isinstance(sess.trials[0], trial.trial)
+    assert isinstance(sess.trials[0], trial.Trial)
     assert isinstance(sess.conditions, np.ndarray)
