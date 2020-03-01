@@ -47,12 +47,13 @@ def test_time_locking():
 
 def test_split_by_trial():
     obj = data.read('abra/test/asc/22205.asc', mode = 'u')
-    trials = obj.split_by_trial(obj)
-    assert len(trials) == len(obj.trial_markers['start'])
+    sess = obj.split_by_trial(obj)
+    assert len(sess.trials) == len(obj.trial_markers['start'])
     assert isinstance(trials[0], data.trial)
 
 def test_summary():
-    obj = obj.split_by_trial(data.read("abra/test/asc/88001.asc", mode = 'u'), conditions =[])
+    obj = data.read("abra/test/asc/88001.asc", mode = 'u'), conditions =[])
+    obj = obj.split_by_trial(obj, conditions = [])
     sum = obj.summary()
     assert isinstance(sum['mean'], float)
     assert isinstance(sum['variance'], float)
