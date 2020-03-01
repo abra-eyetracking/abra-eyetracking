@@ -45,6 +45,6 @@ def test_time_locking():
 
 def test_split_by_trial():
     obj = data.read('abra/test/asc/22205.asc', mode = 'u')
-    trials = split_by_trial(obj)
+    trials = data.split_by_trial(obj)
     assert len(trials) == len(obj.trial_markers['start'])
     assert isinstance(trials[0], data.trial)

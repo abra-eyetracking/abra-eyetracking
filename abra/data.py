@@ -368,8 +368,8 @@ def split_by_trial(data):
         for k in idx:
             tempPupil.append(data.pupil_size[k])
             tempStamp.append(data.timestamps[k])
-        trialPupil.append(tempPupil)
-        trialStamp.append(tempStamp)
+        trialPupil.append(np.array(tempPupil))
+        trialStamp.append(np.array(tempStamp))
 
 
 
@@ -379,4 +379,4 @@ def split_by_trial(data):
         t = trial(trialStamp[i], trialPupil[i])
         trials.append(t)
 
-    return trials
+    return np.array(trials)
