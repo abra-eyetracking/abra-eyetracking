@@ -1,5 +1,5 @@
 # method unit testing
-from abra import data
+from abra import data, trial, session
 import numpy as np
 
 def test_read_does_not_exist():
@@ -48,3 +48,13 @@ def test_split_by_trial():
     trials = data.split_by_trial(obj)
     assert len(trials) == len(obj.trial_markers['start'])
     assert isinstance(trials[0], data.trial)
+
+def test_summary():
+    obj = data.split_by_trial(data.read("abra/test/asc/88001.asc", mode = 'u'), conditions =[])
+    sum = obj.summary()
+    assert isinstance(sum['mean'], float)
+    assert isinstance(sum['variance'], float)
+    assert isinstance(sum['stdev'], float)
+    assert isinstance(sum['length'], float)
+    assert isinstance(sum['min'], float)
+    assert isinstance(sum['max'], float)

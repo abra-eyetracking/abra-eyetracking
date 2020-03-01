@@ -12,22 +12,30 @@ class trial:
 
     def summary(self):
 
+        summary = {}
+
         # Pupil Data
         pupData = self.pupil_size
 
-        # Statistics and Shape of pupil_size across trials
+        # Statistics and Shape of pupil_size across all session
         pupilMean = np.nanmean(pupData)
+        summary['mean'] = pupilMean
         pupilVariance = np.nanvar(pupData)
+        summary['variance'] == pupilVariance
         pupilStdDev = np.nanstd(pupData)
+        summary['stdev'] == pupilStdDev
         pupilSize = len(pupData)
+        summary['lenght'] == pupilSize
         pupilMin = np.nanmin(pupData)
+        summary['min'] == pupilMin
         pupilMax = np.nanmax(pupData)
+        summary['max'] == pupilMax
 
-        print("Trial Pupil Mean: ", pupilMean, '\n'
-                "Trial Pupil Variance: ", pupilVariance, '\n'
-                "Trial Pupil Standard Deviation: ", pupilStdDev, '\n'
-                "Trial Pupil Data Length: ", pupilSize, '\n'
-                "Trial Minimum Pupil Size: ", pupilMin, '\n'
-                "Trial Maximum Pupil Size: ", pupilMax)
+        print("Session Pupil Mean: ", pupilMean, '\n'
+                "Session Pupil Variance: ", pupilVariance, '\n'
+                "Session Pupil Standard Deviation: ", pupilStdDev, '\n'
+                "Session Pupil Data Length: ", pupilSize, '\n'
+                "Session Minimum Pupil Size: ", pupilMin, '\n'
+                "Session Maximum Pupil Size: ", pupilMax)
 
-        return
+        return summary

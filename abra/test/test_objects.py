@@ -1,5 +1,5 @@
 # object unit testing
-from abra import data
+from abra import data, trial, session
 import numpy as np
 
 
@@ -39,15 +39,32 @@ def test_data_member_types():
     assert isinstance(obj.events, dict)
 
 def test_trial_object_init():
-    obj = data.split_by_trial(data.read("abra/test/asc/88001.asc", mode = 'u'))[0]
-    assert isinstance(obj, data.trial)
+    obj = data.split_by_trial(data.read("abra/test/asc/88001.asc", mode = 'u'), conditions =[])[0]
+    assert isinstance(obj, trial.trial)
 
 def test_trial_member_dimensions():
-    obj = data.split_by_trial(data.read("abra/test/asc/88001.asc", mode = 'u'))[0]
+    obj = data.split_by_trial(data.read("abra/test/asc/88001.asc", mode = 'u'), conditions= [])[0]
     assert obj.timestamps.ndim == 1
     assert obj.pupil_size.ndim == 1
 
 def test_trial_member_types():
-    obj = data.split_by_trial(data.read("abra/test/asc/88001.asc", mode = 'u'))[0]
+    obj = data.split_by_trial(data.read("abra/test/asc/88001.asc", mode = 'u'), conditions= [])[0]
     assert isinstance(obj.timestamps, np.ndarray)
     assert isinstance(obj.pupil_size, np.ndarray)
+
+def test_session_object_init():
+    obj = data.split_by_trial(data.read("abra/test/asc/88001.asc", mode = 'u'), conditions =[])
+    assert isinstance(obj, session.session)
+
+def test_session_member_dimensions():
+    obj = data.split_by_trial(data.read("abra/test/asc/88001.asc", mode = 'u'), conditions =[])
+    if (len(conditions == 0)):
+        assert obj.conditions.ndim == 0
+    else:
+        assert obj.conditions.ndim == len(obj.trial.ndim)
+
+def test_session_member_types():
+    obj = data.split_by_trial(data.read("abra/test/asc/88001.asc", mode = 'u'), conditions =[])
+    assert isinstance(obj.trials, np.ndarray)
+    assert isinstance(obj.trials[0], trial.trial)
+    assert isinstance(obj.conditions, np.ndarray)

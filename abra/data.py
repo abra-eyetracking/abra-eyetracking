@@ -321,4 +321,4 @@ class Data:
             t = trial(trialStamp[i], trialPupil[i])
             trials.append(t)
 
-        return session(trials, conditions)
+        return session(np.array(trials), np.array(conditions))
