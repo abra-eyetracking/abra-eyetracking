@@ -3,6 +3,8 @@ import re
 from . import utils
 from scipy.interpolate import interp1d
 import copy
+from . import trial
+from . import session
 
 def is_number(s):
     try:
@@ -271,3 +273,52 @@ class Data:
         self.messages = messages
         self.events = events
         self.trial_markers = trial_markers
+
+
+    """
+    This function splits the pupil size and timestamp data into its respective trials and returns an array of trial class objects
+    """
+    def split_by_trial(self, conditions = []):
+        tMark = self.trial_markers
+        tTime = self.timestamps
+        start = tMark['start']
+        end  = tMark['end']
+
+        # All trial start and end markers in array ([start,end])
+        trialIDX = []
+        for i in range(len(start)):
+            temp = []
+            st = start[i]
+            en = end[i]
+            temp.append(st)
+            temp.append(en)
+            trialIDX.append(temp)
+
+        # Get the pupil size in the events between the starting and ending markers
+        trialPupil = []
+        trialStamp = []
+        for i in range(len(trialIDX)):
+            st = trialIDX[i][0]
+            en = trialIDX[i][1]
+
+            # Find the indexes to call the pupil size within the timestamps for a trial
+            idx = np.where((self.timestamps >= st) & (self.timestamps <= en))[0]
+
+            # Add the pupil sizes for each timestamp
+            tempPupil = []
+            tempStamp = []
+            for k in idx:
+                tempPupil.append(self.pupil_size[k])
+                tempStamp.append(self.timestamps[k])
+            trialPupil.append(np.array(tempPupil))
+            trialStamp.append(np.array(tempStamp))
+
+
+
+        # Create a list of new trials with each pupil_size
+        trials = []
+        for i in range(len(trialIDX)):
+            t = trial.Trial(trialStamp[i], trialPupil[i])
+            trials.append(t)
+
+        return session.Session(np.array(trials), np.array(conditions))
