@@ -5,12 +5,15 @@ from abra import session
 import numpy as np
 
 def test_read_does_not_exist():
-    try:
-        data.read('abcd*(&3)')
-    except OSError as e:
-        assert isinstance(e, FileNotFoundError)
 
+    # try:
+    #     data.read('abcd*(&3)')
+    # except OSError as e:
+    #     assert isinstance(e, FileNotFoundError)
+    #
+    pass
 
+    
 def test_read_bad_filename():
     # try:
     #     obj = abra.read('badname.edf')
@@ -46,13 +49,30 @@ def test_time_locking():
     assert epochs.shape[0] == len(event_timestamps)
 
 def test_split_by_trial():
+    obj = data.read('abra/test/asc/88001.asc')
+    sess = obj.split_by_trial()
+    assert len(sess.trials) == len(obj.trial_markers['start'])
+    assert isinstance(sess.trials[0], trial.Trial)
+
+def test_split_by_trial_udef():
     obj = data.read('abra/test/asc/22205.asc', mode = 'u')
     sess = obj.split_by_trial()
     assert len(sess.trials) == len(obj.trial_markers['start'])
     assert isinstance(sess.trials[0], trial.Trial)
 
 def test_summary():
-    obj = data.read("abra/test/asc/88001.asc", mode = 'u')
+    obj = data.read("abra/test/asc/88001.asc")
+    sess = obj.split_by_trial()
+    sum = sess.summary()
+    assert isinstance(sum['mean'], float)
+    assert isinstance(sum['variance'], float)
+    assert isinstance(sum['stdev'], float)
+    assert isinstance(sum['length'], int)
+    assert isinstance(sum['min'], float)
+    assert isinstance(sum['max'], float)
+
+def test_summary_udef():
+    obj = data.read("abra/test/asc/22205.asc", mode = 'u')
     sess = obj.split_by_trial()
     sum = sess.summary()
     assert isinstance(sum['mean'], float)
