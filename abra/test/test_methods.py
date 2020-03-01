@@ -58,6 +58,6 @@ def test_summary():
     assert isinstance(sum['mean'], float)
     assert isinstance(sum['variance'], float)
     assert isinstance(sum['stdev'], float)
-    assert isinstance(sum['length'], float)
+    assert isinstance(sum['length'], int)
     assert isinstance(sum['min'], float)
     assert isinstance(sum['max'], float)
