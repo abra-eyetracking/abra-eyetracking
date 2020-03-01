@@ -42,33 +42,33 @@ def test_data_member_types():
 
 def test_trial_object_init():
     obj = data.read("abra/test/asc/88001.asc", mode = 'u')
-    sess= obj.split_by_trial()[0]
-    assert isinstance(obj, trial.trial)
+    sess= obj.split_by_trial()
+    assert isinstance(sess.trials[0], trial.trial)
 
 def test_trial_member_dimensions():
     obj = data.read("abra/test/asc/88001.asc", mode = 'u')
-    trial = obj.split_by_trial()[0]
+    trial = obj.split_by_trial().trials[0]
     assert trial.timestamps.ndim == 1
     assert trial.pupil_size.ndim == 1
 
 def test_trial_member_types():
     obj = data.read("abra/test/asc/88001.asc", mode = 'u')
-    trial = obj.split_by_trial()[0]
+    trial = obj.split_by_trial().trials[0]
     assert isinstance(trial.timestamps, np.ndarray)
     assert isinstance(trial.pupil_size, np.ndarray)
 
 def test_session_object_init():
     obj = data.read("abra/test/asc/88001.asc", mode = 'u')
     sess = obj.split_by_trial()
-    assert isinstance(sess, session.session)
+    assert isinstance(sess, session.Session)
 
 def test_session_member_dimensions():
     obj = data.read("abra/test/asc/88001.asc", mode = 'u')
     sess = obj.split_by_trial()
-    if (len(conditions == 0)):
+    if (len(sess.conditions == 0)):
         assert sess.conditions.ndim == 0
     else:
-        assert sess.conditions.ndim == len(sess.trial.ndim)
+        assert sess.conditions.ndim == len(sess.trials.ndim)
 
 def test_session_member_types():
     obj = data.read("abra/test/asc/88001.asc", mode = 'u')
