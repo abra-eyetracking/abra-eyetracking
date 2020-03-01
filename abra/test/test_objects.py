@@ -39,7 +39,7 @@ def test_data_member_types():
     assert isinstance(obj.events, dict)
 
 
-def test_data_missing_values():
+def test_data_missing_values_user():
     obj = data.read(filename = "22205.asc", mode = "u",
                     start_msg = r"b'TRIAL \d{1,2} STARTS",
                     end_msg = r"b'TRIAL \d{1,2} ENDS'")
@@ -55,3 +55,25 @@ def test_data_missing_values():
         assert obj.messages[x] is not None
     for x in obj.events:
         assert obj.events[x] is not None
+    for x in obj.trial_markers["start"]:
+        assert x is not None
+    for x in obj.trial_markers["end"]:
+        assert x is not None
+def test_data_missing_values_default():
+    obj = data.read(filename = "88001.asc"
+    for x in obj.timestamps:
+        assert x is not None
+    for x in obj.pupil_size:
+        assert x is not None
+    for x in obj.movement[0]:
+        assert x is not None
+    for x in obj.movement[1]:
+        assert x is not None
+    for x in obj.messages:
+        assert obj.messages[x] is not None
+    for x in obj.events:
+        assert obj.events[x] is not None
+    for x in obj.trial_markers["start"]:
+        assert x is not None
+    for x in obj.trial_markers["end"]:
+        assert x is not None
