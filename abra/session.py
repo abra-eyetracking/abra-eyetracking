@@ -4,7 +4,7 @@ import numpy as np
 Class to contain all of the trial data structures and epochs
 """
 
-class session:
+class Session:
 
     def __init__(self, trials, conditions = []):
         self.trials = trials

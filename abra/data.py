@@ -3,8 +3,8 @@ import re
 from . import utils
 from scipy.interpolate import interp1d
 import copy
-from trial import trial
-from session import session
+from . import trial
+from . import session
 
 def is_number(s):
     try:
@@ -318,7 +318,7 @@ class Data:
         # Create a list of new trials with each pupil_size
         trials = []
         for i in range(len(trialIDX)):
-            t = trial(trialStamp[i], trialPupil[i])
+            t = trial.Trial(trialStamp[i], trialPupil[i])
             trials.append(t)
 
-        return session(np.array(trials), np.array(conditions))
+        return session.Session(np.array(trials), np.array(conditions))

@@ -4,7 +4,7 @@ import numpy as np
 The trial class for individual trials within the 'data' data structure
 """
 
-class trial:
+class Trial:
 
     def __init__(self, timestamps, pupil_size):
         self.timestamps = timestamps
