@@ -23,15 +23,15 @@ class Session:
         pupilMean = np.nanmean(pupData)
         summary['mean'] = pupilMean
         pupilVariance = np.nanvar(pupData)
-        summary['variance'] == pupilVariance
+        summary['variance'] = pupilVariance
         pupilStdDev = np.nanstd(pupData)
-        summary['stdev'] == pupilStdDev
+        summary['stdev'] = pupilStdDev
         pupilSize = len(pupData)
-        summary['length'] == pupilSize
+        summary['length'] = pupilSize
         pupilMin = np.nanmin(pupData)
-        summary['min'] == pupilMin
+        summary['min'] = pupilMin
         pupilMax = np.nanmax(pupData)
-        summary['max'] == pupilMax
+        summary['max'] = pupilMax
 
         print("Session Pupil Mean: ", pupilMean, '\n'
                 "Session Pupil Variance: ", pupilVariance, '\n'
