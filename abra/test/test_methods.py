@@ -1,5 +1,6 @@
 # method unit testing
 from abra import data
+from abra import split_by_trial
 import numpy as np
 
 def test_read_does_not_exist():
@@ -42,3 +43,9 @@ def test_time_locking():
     event_timestamps = [400000, 401000, 402000, 403000, 404000]
     epochs = data.pupil_size_time_locking(obj, event_timestamps = event_timestamps, pre_event=300, post_event=300, baseline=200)
     assert epochs.shape[0] == len(event_timestamps)
+
+def test_split_by_trial():
+    obj = data.read('abra/test/asc/22205.asc', mode = 'u')
+    trials = split_by_trial(obj)
+    assert len(trials) == len(obj.trial_markers['start'])
+    assert isinstance(trials[0], data.trial)
