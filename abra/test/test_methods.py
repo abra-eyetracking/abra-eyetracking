@@ -1,5 +1,7 @@
 # method unit testing
-from abra import data, trial, session
+from abra import data
+from abra import trial
+from abra import session
 import numpy as np
 
 def test_read_does_not_exist():

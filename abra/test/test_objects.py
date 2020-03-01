@@ -1,5 +1,7 @@
 # object unit testing
-from abra import data, trial, session
+from abra import data
+from abra import trial
+from abra import session
 import numpy as np
 
 
