@@ -1,8 +1,10 @@
 import numpy as np
 import re
-from . import utils
+#from . import utils
 from scipy.interpolate import interp1d
 import copy
+from trial import trial
+from session import session
 
 def is_number(s):
     try:
@@ -272,111 +274,51 @@ class Data:
         self.events = events
         self.trial_markers = trial_markers
 
-    def summary(self):
 
-        # Pupil Data
-        pupData = self.pupil_size
+    """
+    This function splits the pupil size and timestamp data into its respective trials and returns an array of trial class objects
+    """
+    def split_by_trial(self, conditions = []):
+        tMark = self.trial_markers
+        tTime = self.timestamps
+        start = tMark['start']
+        end  = tMark['end']
 
-        # Statistics and Shape of pupil_size across all session
-        pupilMean = np.nanmean(pupData)
-        pupilVariance = np.nanvar(pupData)
-        pupilStdDev = np.nanstd(pupData)
-        pupilSize = len(pupData)
-        pupilMin = np.nanmin(pupData)
-        pupilMax = np.nanmax(pupData)
+        # All trial start and end markers in array ([start,end])
+        trialIDX = []
+        for i in range(len(start)):
+            temp = []
+            st = start[i]
+            en = end[i]
+            temp.append(st)
+            temp.append(en)
+            trialIDX.append(temp)
 
-        print("Session Pupil Mean: ", pupilMean, '\n'
-                "Session Pupil Variance: ", pupilVariance, '\n'
-                "Session Pupil Standard Deviation: ", pupilStdDev, '\n'
-                "Session Pupil Data Length: ", pupilSize, '\n'
-                "Session Minimum Pupil Size: ", pupilMin, '\n'
-                "Session Maximum Pupil Size: ", pupilMax)
-        return
+        # Get the pupil size in the events between the starting and ending markers
+        trialPupil = []
+        trialStamp = []
+        for i in range(len(trialIDX)):
+            st = trialIDX[i][0]
+            en = trialIDX[i][1]
 
-    def getValues(self):
-        print(self.pupil_size)
-        return
+            # Find the indexes to call the pupil size within the timestamps for a trial
+            idx = np.where((self.timestamps >= st) & (self.timestamps <= en))[0]
 
-
-
-"""
-The trial class for individual trials within the 'data' data structure
-"""
-
-class trial:
-
-    def __init__(self, timestamps, pupil_size):
-        self.timestamps = timestamps
-        self.pupil_size = pupil_size
-
-    def summary(self):
-
-        # Pupil Data
-        pupData = self.pupil_size
-
-        # Statistics and Shape of pupil_size across trials
-        pupilMean = np.nanmean(pupData)
-        pupilVariance = np.nanvar(pupData)
-        pupilStdDev = np.nanstd(pupData)
-        pupilSize = len(pupData)
-        pupilMin = np.nanmin(pupData)
-        pupilMax = np.nanmax(pupData)
-
-        print("Trial Pupil Mean: ", pupilMean, '\n'
-                "Trial Pupil Variance: ", pupilVariance, '\n'
-                "Trial Pupil Standard Deviation: ", pupilStdDev, '\n'
-                "Trial Pupil Data Length: ", pupilSize, '\n'
-                "Trial Minimum Pupil Size: ", pupilMin, '\n'
-                "Trial Maximum Pupil Size: ", pupilMax)
-
-    def getValues(self):
-        print(self.pupil_size)
-        return
-
-"""
-This function splits the pupil size and timestamp data into its respective trials and returns an array of trial class objects
-"""
-def split_by_trial(data):
-    tMark = data.trial_markers
-    tTime = data.timestamps
-    start = tMark['start']
-    end  = tMark['end']
-
-    # All trial start and end markers in array ([start,end])
-    trialIDX = []
-    for i in range(len(start)):
-        temp = []
-        st = start[i]
-        en = end[i]
-        temp.append(st)
-        temp.append(en)
-        trialIDX.append(temp)
-
-    # Get the pupil size in the events between the starting and ending markers
-    trialPupil = []
-    trialStamp = []
-    for i in range(len(trialIDX)):
-        st = trialIDX[i][0]
-        en = trialIDX[i][1]
-
-        # Find the indexes to call the pupil size within the timestamps for a trial
-        idx = np.where((data.timestamps >= st) & (data.timestamps <= en))[0]
-
-        # Add the pupil sizes for each timestamp
-        tempPupil = []
-        tempStamp = []
-        for k in idx:
-            tempPupil.append(data.pupil_size[k])
-            tempStamp.append(data.timestamps[k])
-        trialPupil.append(np.array(tempPupil))
-        trialStamp.append(np.array(tempStamp))
+            # Add the pupil sizes for each timestamp
+            tempPupil = []
+            tempStamp = []
+            for k in idx:
+                tempPupil.append(self.pupil_size[k])
+                tempStamp.append(self.timestamps[k])
+            trialPupil.append(np.array(tempPupil))
+            trialStamp.append(np.array(tempStamp))
 
 
 
-    # Create a list of new trials with each pupil_size
-    trials = []
-    for i in range(len(trialIDX)):
-        t = trial(trialStamp[i], trialPupil[i])
-        trials.append(t)
+        # Create a list of new trials with each pupil_size
+        trials = []
+        for i in range(len(trialIDX)):
+            t = trial(trialStamp[i], trialPupil[i])
+            trials.append(t)
 
-    return np.array(trials)
+        return session(trials, conditions)
