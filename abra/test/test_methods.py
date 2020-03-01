@@ -1,6 +1,5 @@
 # method unit testing
 from abra import data
-from abra import split_by_trial
 import numpy as np
 
 def test_read_does_not_exist():
