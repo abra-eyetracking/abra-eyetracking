@@ -40,7 +40,7 @@ def test_data_member_types():
 
 
 def test_data_missing_values_user():
-    obj = data.read(filename = "22205.asc", mode = "u",
+    obj = data.read(filename = "abra/test/asc/22205.asc", mode = "u",
                     start_msg = r"b'TRIAL \d{1,2} STARTS",
                     end_msg = r"b'TRIAL \d{1,2} ENDS'")
     assert None not in obj.timestamps
