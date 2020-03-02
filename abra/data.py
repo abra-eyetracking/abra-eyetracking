@@ -257,7 +257,6 @@ def pupil_size_time_locking(abra_obj, event_timestamps, pre_event=200, post_even
     return tmp
 
 
-
 """
 The Data class for the data structure
 """
@@ -279,46 +278,56 @@ class Data:
     This function splits the pupil size and timestamp data into its respective trials and returns an array of trial class objects
     """
     def split_by_trial(self, conditions = []):
-        tMark = self.trial_markers
-        tTime = self.timestamps
-        start = tMark['start']
-        end  = tMark['end']
+        t_Mark = self.trial_markers
+        t_Time = self.timestamps
+        start = t_Mark['start']
+        end  = t_Mark['end']
 
         # All trial start and end markers in array ([start,end])
-        trialIDX = []
+        trial_IDX = []
         for i in range(len(start)):
             temp = []
             st = start[i]
             en = end[i]
             temp.append(st)
             temp.append(en)
-            trialIDX.append(temp)
+            trial_IDX.append(temp)
 
         # Get the pupil size in the events between the starting and ending markers
-        trialPupil = []
-        trialStamp = []
-        for i in range(len(trialIDX)):
-            st = trialIDX[i][0]
-            en = trialIDX[i][1]
+        trial_pupil = []
+        trial_stamp = []
+        for i in range(len(trial_IDX)):
+            st = trial_IDX[i][0]
+            en = trial_IDX[i][1]
 
             # Find the indexes to call the pupil size within the timestamps for a trial
             idx = np.where((self.timestamps >= st) & (self.timestamps <= en))[0]
 
             # Add the pupil sizes for each timestamp
-            tempPupil = []
-            tempStamp = []
+            temp_pupil = []
+            temp_stamp = []
             for k in idx:
-                tempPupil.append(self.pupil_size[k])
-                tempStamp.append(self.timestamps[k])
-            trialPupil.append(np.array(tempPupil))
-            trialStamp.append(np.array(tempStamp))
+                temp_pupil.append(self.pupil_size[k])
+                temp_stamp.append(self.timestamps[k])
+            trial_pupil.append(np.array(temp_pupil))
+            trial_stamp.append(np.array(temp_stamp))
 
 
 
         # Create a list of new trials with each pupil_size
         trials = []
-        for i in range(len(trialIDX)):
-            t = trial.Trial(trialStamp[i], trialPupil[i])
+        for i in range(len(trial_IDX)):
+            t = trial.Trial(trial_stamp[i], trial_pupil[i])
             trials.append(t)
+
+        # Check for conditions
+        num_trials = len(trials)
+        if len(conditions) == 0:
+            for i in range(num_trials):
+                conditions.append(0)
+
+        elif(len(conditions) != num_trials):
+            raise ValueError('Condition length must be equal to the number of trials: ', num_trials)
+            return
 
         return session.Session(np.array(trials), np.array(conditions))
