@@ -228,35 +228,6 @@ def pupil_size_remove_eye_blinks(abra_obj, buffer=50, interpolate='linear', inpl
 time locking into a particular event.
 """
 
-def pupil_size_time_locking(abra_obj, event_timestamps, pre_event=200, post_event=200, baseline=None):
-    # Create an empty array for storing the epoch information
-    win_size = int((pre_event+post_event)*abra_obj.sample_rate/1000)
-    tmp = np.empty([len(event_timestamps), win_size])
-
-    # Iterate timestamp events get each epoch pupil size
-    for i in range(len(event_timestamps)):
-        start = event_timestamps[i]-pre_event
-        end = event_timestamps[i]+post_event
-        print(start)
-        print(end)
-        idx = (abra_obj.timestamps >= (event_timestamps[i]-pre_event)) & (abra_obj.timestamps <= (event_timestamps[i]+post_event))
-        if np.sum(idx) != win_size:
-            non_zero_idx = np.nonzero(idx)
-            # Explicitly set all values beyond window size to False
-            # Enforcing the length to be the defined window size
-            idx[non_zero_idx[0][0]+win_size:]=False
-        epoch = abra_obj.pupil_size[idx]
-        # Do baselining using the mean and standard deviation of the mean and variance
-        if baseline:
-            baseline_idx = (abra_obj.timestamps >= (event_timestamps[i]-pre_event-baseline)) & (abra_obj.timestamps <= (event_timestamps[i]-pre_event))
-            baseline_period = abra_obj.pupil_size[baseline_idx]
-            baseline_mean = np.mean(baseline_period)
-            baseline_std = np.std(baseline_period)
-            epoch = (epoch - baseline_mean)/baseline_std
-        tmp[i,:] = epoch
-    return tmp
-
-
 """
 The Data class for the data structure
 """
@@ -327,7 +298,7 @@ class Data:
         return session.Session(np.array(trials), np.array(conditions))
 
 
-    def create_epochs(self, event_timestamps, conditions=None, pre_event=200, post_event=200, baseline=None):
+    def create_epochs(self, event_timestamps, conditions=None, pre_event=200, post_event=200, pupil_baseline=None):
         # Create an empty array for storing the epoch information
         win_size = int((pre_event+post_event)*self.sample_rate/1000)
         all_epochs = []
@@ -344,8 +315,8 @@ class Data:
                 idx[non_zero_idx[0][0]+win_size:]=False
             epoch = self.pupil_size[idx]
             # Do baselining using the mean and standard deviation of the mean and variance
-            if baseline:
-                baseline_idx = (self.timestamps >= (event_timestamps[i]-pre_event+baseline[0])) & (self.timestamps <= (event_timestamps[i]-pre_event+baseline[1]))
+            if pupil_baseline:
+                baseline_idx = (self.timestamps >= (event_timestamps[i]-pre_event+pupil_baseline[0])) & (self.timestamps <= (event_timestamps[i]-pre_event+pupil_baseline[1]))
                 baseline_period = self.pupil_size[baseline_idx]
                 baseline_mean = np.mean(baseline_period)
                 baseline_std = np.std(baseline_period)

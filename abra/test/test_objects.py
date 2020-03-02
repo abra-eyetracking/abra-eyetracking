@@ -5,111 +5,133 @@ from abra import session
 import numpy as np
 
 
-def test_data_object_init():
-    obj = data.read("abra/test/asc/88001.asc")
-    type(obj)
-    # TODO: test initialized object members instead of empty
-    #   bottom code is for empty Data() obj which we will not allow,
-    #   i.e. Data() init MUST be passed parameters (from read),
-    #   users will NOT be allowed to create Data() obj manually.
-
-    #   Will not use:
-    # assert obj.timestamps.size == 0
-    # assert obj.pupil_size.size == 0
-    # assert obj.movement.size == 0
-    # assert obj.sample_rate == 0
-    # assert not obj.calibration
-    # assert not obj.messages
-    # assert not obj.events
-
+default_obj = data.read("abra/test/asc/1211NE1.asc")
+udef_obj = data.read("abra/test/asc/22205.asc", mode = 'u')
 
 def test_data_member_dimensions():
-    obj = data.read("abra/test/asc/88001.asc")
-    assert obj.timestamps.ndim == 1
-    assert obj.pupil_size.ndim == 1
-    assert obj.movement.ndim == 2
+    assert default_obj.timestamps.ndim == 1
+    assert default_obj.pupil_size.ndim == 1
+    assert default_obj.movement.ndim == 2
+
+    assert udef_obj.timestamps.ndim == 1
+    assert udef_obj.pupil_size.ndim == 1
+    assert udef_obj.movement.ndim == 2
 
 
 def test_data_member_types():
-    obj = data.read("abra/test/asc/88001.asc")
-    assert isinstance(obj.timestamps, np.ndarray)
-    assert isinstance(obj.pupil_size, np.ndarray)
-    assert isinstance(obj.movement, np.ndarray)
-    assert isinstance(obj.sample_rate, int)
-    assert isinstance(obj.calibration, dict)
-    assert isinstance(obj.messages, dict)
-    assert isinstance(obj.events, dict)
+    assert isinstance(default_obj.timestamps, np.ndarray)
+    assert isinstance(default_obj.pupil_size, np.ndarray)
+    assert isinstance(default_obj.movement, np.ndarray)
+    assert isinstance(default_obj.sample_rate, int)
+    assert isinstance(default_obj.calibration, dict)
+    assert isinstance(default_obj.messages, dict)
+    assert isinstance(default_obj.events, dict)
 
-def test_trial_object_init():
-    obj = data.read("abra/test/asc/88001.asc")
-    sess= obj.split_by_trial()
-    assert isinstance(sess.trials[0], trial.Trial)
+    assert isinstance(udef_obj.timestamps, np.ndarray)
+    assert isinstance(udef_obj.pupil_size, np.ndarray)
+    assert isinstance(udef_obj.movement, np.ndarray)
+    assert isinstance(udef_obj.sample_rate, int)
+    assert isinstance(udef_obj.calibration, dict)
+    assert isinstance(udef_obj.messages, dict)
+    assert isinstance(udef_obj.events, dict)
 
-def test_trial_object_init_udef():
-    obj = data.read("abra/test/asc/22205.asc", mode = 'u')
-    sess= obj.split_by_trial()
-    assert isinstance(sess.trials[0], trial.Trial)
+def test_trial_object():
+    # Test for default case:
+    sess = default_obj.create_session()
+    for t in sess.data:
+        assert isinstance(t, trial.Trial)
+        assert t.timestamps.ndim == 1
+        assert t.pupil_size.ndim == 1
+        assert isinstance(t.timestamps, np.ndarray)
+        assert isinstance(t.pupil_size, np.ndarray)
 
-def test_trial_member_dimensions():
-    obj = data.read("abra/test/asc/88001.asc")
-    trial = obj.split_by_trial().trials[0]
-    assert trial.timestamps.ndim == 1
-    assert trial.pupil_size.ndim == 1
+        sum = t.summary()
+        assert isinstance(sum['mean'], float)
+        assert isinstance(sum['variance'], float)
+        assert isinstance(sum['stdev'], float)
+        assert isinstance(sum['length'], int)
+        assert isinstance(sum['min'], float)
+        assert isinstance(sum['max'], float)
 
-def test_trial_member_dimensions_udef():
-    obj = data.read("abra/test/asc/22205.asc", mode = 'u')
-    trial = obj.split_by_trial().trials[0]
-    assert trial.timestamps.ndim == 1
-    assert trial.pupil_size.ndim == 1
+    # Test for user define case:
+    sess = udef_obj.create_session()
+    for t in sess.data:
+        assert isinstance(t, trial.Trial)
+        assert t.timestamps.ndim == 1
+        assert t.pupil_size.ndim == 1
+        assert isinstance(t.timestamps, np.ndarray)
+        assert isinstance(t.pupil_size, np.ndarray)
 
-def test_trial_member_types():
-    obj = data.read("abra/test/asc/88001.asc")
-    trial = obj.split_by_trial().trials[0]
-    assert isinstance(trial.timestamps, np.ndarray)
-    assert isinstance(trial.pupil_size, np.ndarray)
+        sum = t.summary()
+        assert isinstance(sum['mean'], float)
+        assert isinstance(sum['variance'], float)
+        assert isinstance(sum['stdev'], float)
+        assert isinstance(sum['length'], int)
+        assert isinstance(sum['min'], float)
+        assert isinstance(sum['max'], float)
 
-def test_trial_member_types_udef():
-    obj = data.read("abra/test/asc/22205.asc", mode = 'u')
-    trial = obj.split_by_trial().trials[0]
-    assert isinstance(trial.timestamps, np.ndarray)
-    assert isinstance(trial.pupil_size, np.ndarray)
-
-def test_session_object_init():
-    obj = data.read("abra/test/asc/88001.asc")
-    sess = obj.split_by_trial()
+def test_session_object():
+    sess = default_obj.create_session()
     assert isinstance(sess, session.Session)
+    #assert isinstance(sess.data, list)
+    assert isinstance(sess.data[0], trial.Trial)
+    assert isinstance(sess.conditions, np.ndarray)
+    assert len(sess.data) == len(sess.conditions)
 
-def test_session_object_init_udef():
-    obj = data.read("abra/test/asc/22205.asc", mode = 'u')
-    sess = obj.split_by_trial()
+    sum = sess.summary()
+    assert isinstance(sum['mean'], float)
+    assert isinstance(sum['variance'], float)
+    assert isinstance(sum['stdev'], float)
+    assert isinstance(sum['length'], int)
+    assert isinstance(sum['min'], float)
+    assert isinstance(sum['max'], float)
+
+    sess = udef_obj.create_session()
     assert isinstance(sess, session.Session)
-
-def test_session_member_dimensions():
-    obj = data.read("abra/test/asc/88001.asc")
-    sess = obj.split_by_trial()
-    if (len(sess.conditions == 0)):
-        assert sess.conditions.ndim == 0
-    else:
-        assert sess.conditions.ndim == sess.trials.ndim
-
-def test_session_member_dimensions_udef():
-    obj = data.read("abra/test/asc/22205.asc", mode = 'u')
-    sess = obj.split_by_trial()
-    if (len(sess.conditions == 0)):
-        assert sess.conditions.ndim == 0
-    else:
-        assert sess.conditions.ndim == sess.trials.ndim
-
-def test_session_member_types():
-    obj = data.read("abra/test/asc/88001.asc")
-    sess = obj.split_by_trial()
-    assert isinstance(sess.trials, np.ndarray)
-    assert isinstance(sess.trials[0], trial.Trial)
+    #assert isinstance(sess.data, list)
+    assert isinstance(sess.data[0], trial.Trial)
     assert isinstance(sess.conditions, np.ndarray)
+    assert len(sess.data) == len(sess.conditions)
 
-def test_session_member_types_udef():
-    obj = data.read("abra/test/asc/22205.asc", mode = 'u')
-    sess = obj.split_by_trial()
-    assert isinstance(sess.trials, np.ndarray)
-    assert isinstance(sess.trials[0], trial.Trial)
-    assert isinstance(sess.conditions, np.ndarray)
+    sum = sess.summary()
+    assert isinstance(sum['mean'], float)
+    assert isinstance(sum['variance'], float)
+    assert isinstance(sum['stdev'], float)
+    assert isinstance(sum['length'], int)
+    assert isinstance(sum['min'], float)
+    assert isinstance(sum['max'], float)
+
+def test_epochs_object():
+    cleaned_default = data.pupil_size_remove_eye_blinks(default_obj, buffer=50)
+    event_timestamps = np.array(cleaned_default.trial_markers['start']) + 1000  # Buffer for baslining
+    test_epochs = cleaned_default.create_epochs(event_timestamps,
+                                                conditions=None,
+                                                pre_event=200,
+                                                post_event=200,
+                                                pupil_baseline=[-200,-100])
+    sum = test_epochs.summary()
+    assert isinstance(sum['mean'], float)
+    assert isinstance(sum['variance'], float)
+    assert isinstance(sum['stdev'], float)
+    assert isinstance(sum['length'], int)
+    assert isinstance(sum['min'], float)
+    assert isinstance(sum['max'], float)
+
+    assert test_epochs.get_values().shape[1] == 200
+
+    cleaned_udef = data.pupil_size_remove_eye_blinks(udef_obj, buffer=50)
+    event_timestamps = np.array(cleaned_udef.trial_markers['start']) + 1000  # Buffer for baslining
+    test_epochs = cleaned_udef.create_epochs(event_timestamps,
+                                                conditions=None,
+                                                pre_event=200,
+                                                post_event=200,
+                                                pupil_baseline=[-200,-100])
+    sum = test_epochs.summary()
+    assert isinstance(sum['mean'], float)
+    assert isinstance(sum['variance'], float)
+    assert isinstance(sum['stdev'], float)
+    assert isinstance(sum['length'], int)
+    assert isinstance(sum['min'], float)
+    assert isinstance(sum['max'], float)
+
+    assert test_epochs.get_values().shape[1] == 200
