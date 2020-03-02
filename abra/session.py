@@ -3,6 +3,7 @@ import random as rand
 from . import trial
 from . import session
 
+
 def shuffle(session):
     sess = session
     num_trial = len(sess.trials)
@@ -32,33 +33,36 @@ def shuffle(session):
 Class to contain all of the trial data structures and epochs
 """
 
-class Session:
+class Base:
 
-    def __init__(self, trials, conditions = []):
-        self.trials = trials
-        self.conditions = conditions
+    def __init__(self, pupil_data, conditions=None):
+        self.pupil_data = pupil_data
+        if conditions:
+            self.conditions = conditions
+        else:
+            self.conditions = np.zeros(len(self.pupil_data))
 
     def summary(self):
         summary = {}
 
         # Pupil Data
         pup_data = []
-        for i in self.trials:
+        for i in self.pupil_data:
             for j in i.pupil_size:
                 pup_data.append(j)
 
         # Statistics and Shape of pupil_size across all session
-        pupil_mean = np.nanmean(pupil_mean)
+        pupil_mean = np.nanmean(pup_data)
         summary['mean'] = pupil_mean
-        pupil_variance = np.nanvar(pupil_mean)
+        pupil_variance = np.nanvar(pup_data)
         summary['variance'] = pupil_variance
-        pupil_stddev = np.nanstd(pupil_mean)
+        pupil_stddev = np.nanstd(pup_data)
         summary['stdev'] = pupil_stddev
-        pupil_size = len(pupil_mean)
+        pupil_size = len(pup_data)
         summary['length'] = pupil_size
-        pupil_min = np.nanmin(pupil_mean)
+        pupil_min = np.nanmin(pup_data)
         summary['min'] = pupil_min
-        pupil_max = np.nanmax(pupil_mean)
+        pupil_max = np.nanmax(pup_data)
         summary['max'] = pupil_max
 
         print("Session Pupil Mean: ", pupil_mean, '\n'
@@ -71,6 +75,17 @@ class Session:
         return summary
 
     def get_values(self):
-        for i in self.trials:
-            print(i.pupil_size)
-        return
+        tmp_ls = []
+        for i in self.data:
+            tmp_ls.append(i.pupil_size)
+        return np.array(tmp_ls)
+
+
+class Session(Base):
+    def __init__(self, trials, conditions=None):
+        Base.__init__(trials, conditions)
+
+
+class Epochs(Base):
+    def __init__(self, epochs, conditions=None):
+        Base.__init__(epochs, conditions)
