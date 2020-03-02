@@ -9,33 +9,34 @@ class Trial:
     def __init__(self, timestamps, pupil_size):
         self.timestamps = timestamps
         self.pupil_size = pupil_size
+        #TODO: add movement size
 
     def summary(self):
 
         summary = {}
 
         # Pupil Data
-        pupData = self.pupil_size
+        pup_data = self.pupil_size
 
         # Statistics and Shape of pupil_size across all session
-        pupilMean = np.nanmean(pupData)
-        summary['mean'] = pupilMean
-        pupilVariance = np.nanvar(pupData)
-        summary['variance'] = pupilVariance
-        pupilStdDev = np.nanstd(pupData)
-        summary['stdev'] = pupilStdDev
-        pupilSize = len(pupData)
-        summary['lenght'] = pupilSize
-        pupilMin = np.nanmin(pupData)
-        summary['min'] = pupilMin
-        pupilMax = np.nanmax(pupData)
-        summary['max'] = pupilMax
+        pupil_mean = np.nanmean(pup_data)
+        summary['mean'] = pupil_mean
+        pupil_variance = np.nanvar(pup_data)
+        summary['variance'] = pupil_variance
+        pupil_stddev = np.nanstd(pup_data)
+        summary['stdev'] = pupil_stddev
+        pupil_size = len(pup_data)
+        summary['length'] = pupil_size
+        pupil_min = np.nanmin(pup_data)
+        summary['min'] = pupil_min
+        pupil_max = np.nanmax(pup_data)
+        summary['max'] = pupil_max
 
-        print("Session Pupil Mean: ", pupilMean, '\n'
-                "Session Pupil Variance: ", pupilVariance, '\n'
-                "Session Pupil Standard Deviation: ", pupilStdDev, '\n'
-                "Session Pupil Data Length: ", pupilSize, '\n'
-                "Session Minimum Pupil Size: ", pupilMin, '\n'
-                "Session Maximum Pupil Size: ", pupilMax)
+        print("Session Pupil Mean: ", pupil_mean, '\n'
+                "Session Pupil Variance: ", pupil_variance, '\n'
+                "Session Pupil Standard Deviation: ", pupil_stddev, '\n'
+                "Session Pupil Data Length: ", pupil_size, '\n'
+                "Session Minimum Pupil Size: ", pupil_min, '\n'
+                "Session Maximum Pupil Size: ", pupil_max)
 
         return summary
