@@ -35,19 +35,19 @@ Class to contain all of the trial data structures and epochs
 
 class Base:
 
-    def __init__(self, pupil_data, conditions=None):
-        self.pupil_data = pupil_data
+    def __init__(self, data, conditions=None):
+        self.data = data
         if conditions:
             self.conditions = conditions
         else:
-            self.conditions = np.zeros(len(self.pupil_data))
+            self.conditions = np.zeros(len(self.data))
 
     def summary(self):
         summary = {}
 
         # Pupil Data
         pup_data = []
-        for i in self.pupil_data:
+        for i in self.data:
             for j in i.pupil_size:
                 pup_data.append(j)
 
@@ -80,12 +80,18 @@ class Base:
             tmp_ls.append(i.pupil_size)
         return np.array(tmp_ls)
 
+    def get_timestamps(self):
+        tmp_ls = []
+        for i in self.data:
+            tmp_ls.append(i.timestamps)
+        return np.array(tmp_ls)
+
 
 class Session(Base):
     def __init__(self, trials, conditions=None):
-        Base.__init__(trials, conditions)
+        Base.__init__(self, trials, conditions)
 
 
 class Epochs(Base):
     def __init__(self, epochs, conditions=None):
-        Base.__init__(epochs, conditions)
+        Base.__init__(self, epochs, conditions)

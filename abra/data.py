@@ -330,12 +330,13 @@ class Data:
     def create_epochs(self, event_timestamps, conditions=None, pre_event=200, post_event=200, baseline=None):
         # Create an empty array for storing the epoch information
         win_size = int((pre_event+post_event)*self.sample_rate/1000)
-
+        all_epochs = []
         # Iterate timestamp events get each epoch pupil size
         for i in range(len(event_timestamps)):
             start = event_timestamps[i]-pre_event
             end = event_timestamps[i]+post_event
             idx = (self.timestamps >= (event_timestamps[i]-pre_event)) & (self.timestamps <= (event_timestamps[i]+post_event))
+
             if np.sum(idx) != win_size:
                 non_zero_idx = np.nonzero(idx)
                 # Explicitly set all values beyond window size to False
@@ -350,5 +351,8 @@ class Data:
                 baseline_std = np.std(baseline_period)
                 epoch = (epoch - baseline_mean)/baseline_std
 
+            t = trial.Trial(self.timestamps[idx], epoch)
+            all_epochs.append(t)
 
-        return tmp
+        epochs = session.Epochs(all_epochs, conditions)
+        return epochs

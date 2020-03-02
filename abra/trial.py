@@ -9,6 +9,7 @@ class Trial:
     def __init__(self, timestamps, pupil_size):
         self.timestamps = timestamps
         self.pupil_size = pupil_size
+        #TODO: add movement size
 
     def summary(self):
 
@@ -25,7 +26,7 @@ class Trial:
         pupil_stddev = np.nanstd(pup_data)
         summary['stdev'] = pupil_stddev
         pupil_size = len(pup_data)
-        summary['lenght'] = pupil_size
+        summary['length'] = pupil_size
         pupil_min = np.nanmin(pup_data)
         summary['min'] = pupil_min
         pupil_max = np.nanmax(pup_data)
