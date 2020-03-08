@@ -2,6 +2,7 @@ import numpy as np
 import random as rand
 from . import trial
 from . import session
+import copy
 
 """
 Class to contain all of the trial data structures and epochs
@@ -100,7 +101,7 @@ class Base:
 
 
     def select(self, indexes):
-        new = self
+        new = copy.deepcopy(self)
         new_data = []
         new_cond = []
         for i in indexes:
@@ -110,7 +111,7 @@ class Base:
         new.conditions = new_cond
 
         return new
-        
+
 class Session(Base):
     def __init__(self, trials, conditions=None):
         Base.__init__(self, trials, conditions)
