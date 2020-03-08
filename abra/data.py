@@ -291,11 +291,11 @@ class Data:
 
         # Check for conditions
         num_trials = len(trials)
-        if conditions:
+        if conditions != None:
             if (len(conditions) != num_trials):
                 raise ValueError('Condition length must be equal to the number of trials: ', num_trials)
 
-        return session.Session(np.array(trials), np.array(conditions))
+        return session.Session(np.array(trials), conditions)
 
 
     def create_epochs(self, event_timestamps, conditions=None, pre_event=200, post_event=200, pupil_baseline=None):
