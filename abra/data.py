@@ -291,7 +291,7 @@ class Data:
 
         # Check for conditions
         num_trials = len(trials)
-        if conditions != None:
+        if conditions is not None:
             if (len(conditions) != num_trials):
                 raise ValueError('Condition length must be equal to the number of trials: ', num_trials)
 
