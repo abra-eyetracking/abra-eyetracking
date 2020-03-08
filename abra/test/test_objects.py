@@ -133,3 +133,37 @@ def test_epochs_object():
     assert isinstance(sum['length'], int)
     assert isinstance(sum['min'], float)
     assert isinstance(sum['max'], float)
+
+def test_data_object():
+    #test for missing values in messages, event, and trial markers
+    assert None not in udef_obj.timestamps
+    for mes in udef_obj.messages:
+        assert len(udef_obj.messages[mes]) > 0
+    for x in udef_obj.events:
+        assert len(udef_obj.events[x]) > 0
+    for x in udef_obj.trial_markers["start"]:
+        assert x is not None
+    for x in udef_obj.trial_markers["end"]:
+        assert x is not None
+
+    assert None not in default_obj.timestamps
+    for mes in default_obj.messages:
+        assert len(default_obj.messages[mes]) > 0
+    for x in default_obj.events:
+        assert len(default_obj.events[x]) > 0
+    for x in default_obj.trial_markers["start"]:
+        assert x is not None
+    for x in default_obj.trial_markers["end"]:
+        assert x is not None
+
+    #test to make sure variables have the same length
+    assert default_obj.timestamps.size == default_obj.pupil_size.size
+    assert default_obj.timestamps.size == default_obj.movement[0].size
+    assert default_obj.timestamps.size == default_obj.movement[1].size
+    assert default_obj.movement[0].size == default_obj.movement[1].size
+
+
+    assert udef_obj.timestamps.size == udef_obj.pupil_size.size
+    assert udef_obj.timestamps.size == udef_obj.movement[0].size
+    assert udef_obj.timestamps.size == udef_obj.movement[1].size
+    assert udef_obj.movement[0].size == udef_obj.movement[1].size
