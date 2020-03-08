@@ -99,6 +99,18 @@ class Base:
         return np.array(tmp_ls)
 
 
+    def select(self, indexes):
+        new = self
+        new_data = []
+        new_cond = []
+        for i in indexes:
+            new_data.append(self.data[i])
+            new_cond.append(self.conditions[i])
+        new.data = new_data
+        new.conditions = new_cond
+
+        return new
+        
 class Session(Base):
     def __init__(self, trials, conditions=None):
         Base.__init__(self, trials, conditions)
