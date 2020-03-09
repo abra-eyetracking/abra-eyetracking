@@ -1,44 +1,63 @@
 # method unit testing
 from abra import data
+from abra import trial
+from abra import session
 import numpy as np
 
-def test_read_does_not_exist():
-    try:
-        data.read('abcd*(&3)')
-    except OSError as e:
-        assert isinstance(e, FileNotFoundError)
-
-
-def test_read_bad_filename():
-    # try:
-    #     obj = abra.read('badname.edf')
-    # except BadFileExtension:
-    #     assert e.errno == errno.ENOENT
-    pass
-
-
-def test_read_file_opened():
-    """
-    A few test cases for file opening with the Python open function.
-    """
-    obj = data.read('abra/test/asc/88001.asc')
-
+default_obj = data.read('abra/test/asc/1211NE1.asc')
+udef_obj = data.read('abra/test/asc/22205.asc', mode = 'u')
 
 def test_read_output():
-    obj = data.read('abra/test/asc/88001.asc')
-    assert isinstance(obj, data.Data)
+    assert isinstance(default_obj, data.Data)
+    assert isinstance(udef_obj, data.Data)
 
 
 def test_remove_eye_blinks():
-    obj = data.read('abra/test/asc/22205.asc')
-    processed = data.pupil_size_remove_eye_blinks(obj, buffer=10)
+    processed = data.pupil_size_remove_eye_blinks(default_obj, buffer=10)
     assert np.sum(np.isnan(processed.pupil_size))==0
-    processed = data.pupil_size_remove_eye_blinks(obj, buffer=100)
+    processed = data.pupil_size_remove_eye_blinks(default_obj, buffer=100)
     assert np.sum(np.isnan(processed.pupil_size))==0
 
+    processed = data.pupil_size_remove_eye_blinks(udef_obj, buffer=10)
+    assert np.sum(np.isnan(processed.pupil_size))==0
+    processed = data.pupil_size_remove_eye_blinks(udef_obj, buffer=100)
+    assert np.sum(np.isnan(processed.pupil_size))==0
 
-def test_time_locking():
-    obj = data.read('abra/test/asc/22205.asc')
-    event_timestamps = [400000, 401000, 402000, 403000, 404000]
-    epochs = data.pupil_size_time_locking(obj, event_timestamps = event_timestamps, pre_event=300, post_event=300, baseline=200)
-    assert epochs.shape[0] == len(event_timestamps)
+def test_shuffle():
+    sess = default_obj.create_session()
+    sess_u = udef_obj.create_session()
+    cleaned_default = data.pupil_size_remove_eye_blinks(default_obj, buffer=50)
+    event_timestamps = np.array(cleaned_default.trial_markers['start']) + 1000  # Buffer for baslining
+    test_epochs = cleaned_default.create_epochs(event_timestamps,
+                                                conditions=None,
+                                                pre_event=200,
+                                                post_event=200,
+                                                pupil_baseline=[-200,-100])
+    rand_shuf = session.shuffle(test_epochs)
+
+    assert isinstance(rand_shuf, session.Epochs)
+    for i in rand_shuf.data:
+        assert i in test_epochs.data
+
+    cleaned_udef = data.pupil_size_remove_eye_blinks(udef_obj, buffer=50)
+    event_timestamps = np.array(cleaned_udef.trial_markers['start']) + 1000  # Buffer for baslining
+    test_epochs_udef = cleaned_udef.create_epochs(event_timestamps,
+                                                conditions=None,
+                                                pre_event=200,
+                                                post_event=200,
+                                                pupil_baseline=[-200,-100])
+    rand_shuf = session.shuffle(test_epochs_udef)
+    assert isinstance(rand_shuf, session.Epochs)
+    for i in rand_shuf.data:
+        assert i in test_epochs_udef.data
+
+    rand_sess = session.shuffle(sess)
+    assert isinstance(rand_sess, session.Session)
+    for i in rand_sess.data:
+        assert i in sess.data
+
+
+    rand_sess= session.shuffle(sess_u)
+    assert isinstance(rand_sess, session.Session)
+    for i in rand_sess.data:
+        assert i in sess_u.data

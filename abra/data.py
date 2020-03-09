@@ -3,6 +3,8 @@ import re
 from . import utils
 from scipy.interpolate import interp1d
 import copy
+from . import trial
+from . import session
 
 def is_number(s):
     try:
@@ -220,36 +222,6 @@ def pupil_size_remove_eye_blinks(abra_obj, buffer=50, interpolate='linear', inpl
 time locking into a particular event.
 """
 
-def pupil_size_time_locking(abra_obj, event_timestamps, pre_event=200, post_event=200, baseline=None):
-    # Create an empty array for storing the epoch information
-    win_size = int((pre_event+post_event)*abra_obj.sample_rate/1000)
-    tmp = np.empty([len(event_timestamps), win_size])
-
-    # Iterate timestamp events get each epoch pupil size
-    for i in range(len(event_timestamps)):
-        start = event_timestamps[i]-pre_event
-        end = event_timestamps[i]+post_event
-        print(start)
-        print(end)
-        idx = (abra_obj.timestamps >= (event_timestamps[i]-pre_event)) & (abra_obj.timestamps <= (event_timestamps[i]+post_event))
-        if np.sum(idx) != win_size:
-            non_zero_idx = np.nonzero(idx)
-            # Explicitly set all values beyond window size to False
-            # Enforcing the length to be the defined window size
-            idx[non_zero_idx[0][0]+win_size:]=False
-        epoch = abra_obj.pupil_size[idx]
-        # Do baselining using the mean and standard deviation of the mean and variance
-        if baseline:
-            baseline_idx = (abra_obj.timestamps >= (event_timestamps[i]-pre_event-baseline)) & (abra_obj.timestamps <= (event_timestamps[i]-pre_event))
-            baseline_period = abra_obj.pupil_size[baseline_idx]
-            baseline_mean = np.mean(baseline_period)
-            baseline_std = np.std(baseline_period)
-            epoch = (epoch - baseline_mean)/baseline_std
-        tmp[i,:] = epoch
-    return tmp
-
-
-
 """
 The Data class for the data structure
 """
@@ -265,3 +237,87 @@ class Data:
         self.messages = messages
         self.events = events
         self.trial_markers = trial_markers
+
+
+    """
+    This function splits the pupil size and timestamp data into its respective trials and returns an array of trial class objects
+    """
+    def create_session(self, conditions=None):
+        t_Mark = self.trial_markers
+        t_Time = self.timestamps
+        start = t_Mark['start']
+        end  = t_Mark['end']
+
+        # All trial start and end markers in array ([start,end])
+        trial_IDX = []
+        for i in range(len(start)):
+            temp = []
+            st = start[i]
+            en = end[i]
+            temp.append(st)
+            temp.append(en)
+            trial_IDX.append(temp)
+
+        # Get the pupil size in the events between the starting and ending markers
+        trial_pupil = []
+        trial_stamp = []
+        for i in range(len(trial_IDX)):
+            st = trial_IDX[i][0]
+            en = trial_IDX[i][1]
+
+            # Find the indexes to call the pupil size within the timestamps for a trial
+            idx = np.where((self.timestamps >= st) & (self.timestamps <= en))[0]
+
+            # Add the pupil sizes for each timestamp
+            temp_pupil = []
+            temp_stamp = []
+            for k in idx:
+                temp_pupil.append(self.pupil_size[k])
+                temp_stamp.append(self.timestamps[k])
+            trial_pupil.append(np.array(temp_pupil))
+            trial_stamp.append(np.array(temp_stamp))
+
+        # Create a list of new trials with each pupil_size
+        trials = []
+        for i in range(len(trial_IDX)):
+            t = trial.Trial(trial_stamp[i], trial_pupil[i])
+            trials.append(t)
+
+        # Check for conditions
+        num_trials = len(trials)
+        if conditions is not None:
+            if (len(conditions) != num_trials):
+                raise ValueError('Condition length must be equal to the number of trials: ', num_trials)
+
+        return session.Session(np.array(trials), conditions)
+
+
+    def create_epochs(self, event_timestamps, conditions=None, pre_event=200, post_event=200, pupil_baseline=None):
+        # Create an empty array for storing the epoch information
+        win_size = int((pre_event+post_event)*self.sample_rate/1000)
+        all_epochs = []
+        # Iterate timestamp events get each epoch pupil size
+        for i in range(len(event_timestamps)):
+            start = event_timestamps[i]-pre_event
+            end = event_timestamps[i]+post_event
+            idx = (self.timestamps >= (event_timestamps[i]-pre_event)) & (self.timestamps <= (event_timestamps[i]+post_event))
+
+            if np.sum(idx) != win_size:
+                non_zero_idx = np.nonzero(idx)
+                # Explicitly set all values beyond window size to False
+                # Enforcing the length to be the defined window size
+                idx[non_zero_idx[0][0]+win_size:]=False
+            epoch = self.pupil_size[idx]
+            # Do baselining using the mean and standard deviation of the mean and variance
+            if pupil_baseline:
+                baseline_idx = (self.timestamps >= (event_timestamps[i]-pre_event+pupil_baseline[0])) & (self.timestamps <= (event_timestamps[i]-pre_event+pupil_baseline[1]))
+                baseline_period = self.pupil_size[baseline_idx]
+                baseline_mean = np.mean(baseline_period)
+                baseline_std = np.std(baseline_period)
+                epoch = (epoch - baseline_mean)/baseline_std
+
+            t = trial.Trial(self.timestamps[idx], epoch)
+            all_epochs.append(t)
+
+        epochs = session.Epochs(all_epochs, conditions)
+        return epochs
