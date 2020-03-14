@@ -104,6 +104,7 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                 # finds start time using user defined marker
                 if re.search(start_msg, line[2:]):
                     start_time, trial_markers, end_time = find_start(elements, start_time, trial_markers, end_time)
+                    flag = True
                     continue
 
                 # to only get END messages using user defined marker
@@ -111,6 +112,7 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                 if re.search(end_msg, line[2:]):
                     #print(elements)
                     end_time, trial_markers, messages_dict, flag, start_time = find_end(elements, end_time, trial_markers, messages_dict, flag, start_time)
+                    flag = False
                     continue
 
                 # check for start marker
