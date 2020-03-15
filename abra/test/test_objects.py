@@ -8,32 +8,6 @@ import numpy as np
 default_obj = data.read("abra/test/asc/1211NE1.asc")
 udef_obj = data.read("abra/test/asc/22205.asc", mode = 'u')
 
-def test_data_member_dimensions():
-    assert default_obj.timestamps.ndim == 1
-    assert default_obj.pupil_size.ndim == 1
-    assert default_obj.movement.ndim == 2
-
-    assert udef_obj.timestamps.ndim == 1
-    assert udef_obj.pupil_size.ndim == 1
-    assert udef_obj.movement.ndim == 2
-
-
-def test_data_member_types():
-    assert isinstance(default_obj.timestamps, np.ndarray)
-    assert isinstance(default_obj.pupil_size, np.ndarray)
-    assert isinstance(default_obj.movement, np.ndarray)
-    assert isinstance(default_obj.sample_rate, int)
-    assert isinstance(default_obj.calibration, dict)
-    assert isinstance(default_obj.messages, dict)
-    assert isinstance(default_obj.events, dict)
-
-    assert isinstance(udef_obj.timestamps, np.ndarray)
-    assert isinstance(udef_obj.pupil_size, np.ndarray)
-    assert isinstance(udef_obj.movement, np.ndarray)
-    assert isinstance(udef_obj.sample_rate, int)
-    assert isinstance(udef_obj.calibration, dict)
-    assert isinstance(udef_obj.messages, dict)
-    assert isinstance(udef_obj.events, dict)
 
 def test_trial_object():
     # Test for default case:
@@ -135,28 +109,30 @@ def test_epochs_object():
     assert isinstance(sum['max'], float)
 
 def test_data_object():
-    #test for missing values in messages, event, and trial markers
+    #Test for missing values in messages, event, and trial markers
     assert None not in udef_obj.timestamps
+    assert None not in udef_obj.pupil_size
     for mes in udef_obj.messages:
         assert len(udef_obj.messages[mes]) > 0
-    for x in udef_obj.events:
-        assert len(udef_obj.events[x]) > 0
-    for x in udef_obj.trial_markers["start"]:
-        assert x is not None
-    for x in udef_obj.trial_markers["end"]:
-        assert x is not None
+    for evnt in udef_obj.events:
+        assert len(udef_obj.events[evnt]) > 0
+    for ts in udef_obj.trial_markers["start"]:
+        assert ts is not None
+    for te in udef_obj.trial_markers["end"]:
+        assert ts is not None
 
     assert None not in default_obj.timestamps
+    assert None not in default_obj.pupil_size
     for mes in default_obj.messages:
         assert len(default_obj.messages[mes]) > 0
-    for x in default_obj.events:
-        assert len(default_obj.events[x]) > 0
-    for x in default_obj.trial_markers["start"]:
-        assert x is not None
-    for x in default_obj.trial_markers["end"]:
-        assert x is not None
+    for evnt in default_obj.events:
+        assert len(default_obj.events[evnt]) > 0
+    for ts in default_obj.trial_markers["start"]:
+        assert ts is not None
+    for te in default_obj.trial_markers["end"]:
+        assert te is not None
 
-    #test to make sure variables have the same length
+    #Test to make sure variables have the same length
     assert default_obj.timestamps.size == default_obj.pupil_size.size
     assert default_obj.timestamps.size == default_obj.movement[0].size
     assert default_obj.timestamps.size == default_obj.movement[1].size
@@ -167,3 +143,29 @@ def test_data_object():
     assert udef_obj.timestamps.size == udef_obj.movement[0].size
     assert udef_obj.timestamps.size == udef_obj.movement[1].size
     assert udef_obj.movement[0].size == udef_obj.movement[1].size
+
+    #Test dimensions
+    assert default_obj.timestamps.ndim == 1
+    assert default_obj.pupil_size.ndim == 1
+    assert default_obj.movement.ndim == 2
+
+    assert udef_obj.timestamps.ndim == 1
+    assert udef_obj.pupil_size.ndim == 1
+    assert udef_obj.movement.ndim == 2
+
+    #Test data member type
+    assert isinstance(default_obj.timestamps, np.ndarray)
+    assert isinstance(default_obj.pupil_size, np.ndarray)
+    assert isinstance(default_obj.movement, np.ndarray)
+    assert isinstance(default_obj.sample_rate, int)
+    assert isinstance(default_obj.calibration, dict)
+    assert isinstance(default_obj.messages, dict)
+    assert isinstance(default_obj.events, dict)
+
+    assert isinstance(udef_obj.timestamps, np.ndarray)
+    assert isinstance(udef_obj.pupil_size, np.ndarray)
+    assert isinstance(udef_obj.movement, np.ndarray)
+    assert isinstance(udef_obj.sample_rate, int)
+    assert isinstance(udef_obj.calibration, dict)
+    assert isinstance(udef_obj.messages, dict)
+    assert isinstance(udef_obj.events, dict)
