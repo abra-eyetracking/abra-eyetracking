@@ -2,13 +2,27 @@ import numpy as np
 import random as rand
 from . import trial
 from . import session
+import copy
+
+"""
+Class to contain all of the trial data structures and epochs
+"""
+
+def shuffle(Base):
+    base = Base
+    id = 0
+    if isinstance(base, session.Session):
+        id = 0
+    elif isinstance(base, session.Epochs):
+        id = 1
+    else:
+        raise ValueError("Only instances of the base class may be shuffled, Epochs or Session")
+        return
 
 
-def shuffle(session):
-    sess = session
-    num_trial = len(sess.trials)
-    trials = sess.trials
-    conditions = sess.conditions
+    num_trial = len(base.data)
+    instances = base.data
+    conditions = base.conditions
     rand_idx = []
 
     while len(rand_idx) != num_trial:
@@ -18,26 +32,25 @@ def shuffle(session):
         else:
             rand_idx.append(new)
 
-    new_trials = []
+    new_instances = []
     new_conditions = []
+
     for i in rand_idx:
-        trial = trials[i]
-        new_trials.append(trial)
+        instance = instances[i]
+        new_instances.append(instance)
         cond = conditions[i]
         new_conditions.append(cond)
 
-    return Session(np.array(new_trials), np.array(new_conditions))
-
-
-"""
-Class to contain all of the trial data structures and epochs
-"""
+    if id == 0:
+        return Session(np.array(new_instances), np.array(new_conditions))
+    else:
+        return Epochs(np.array(new_instances), np.array(new_conditions))
 
 class Base:
 
     def __init__(self, data, conditions=None):
         self.data = data
-        if conditions:
+        if conditions is not None:
             self.conditions = conditions
         else:
             self.conditions = np.zeros(len(self.data))
@@ -86,6 +99,18 @@ class Base:
             tmp_ls.append(i.timestamps)
         return np.array(tmp_ls)
 
+
+    def select(self, indexes):
+        new = copy.deepcopy(self)
+        new_data = []
+        new_cond = []
+        for i in indexes:
+            new_data.append(self.data[i])
+            new_cond.append(self.conditions[i])
+        new.data = new_data
+        new.conditions = new_cond
+
+        return new
 
 class Session(Base):
     def __init__(self, trials, conditions=None):
