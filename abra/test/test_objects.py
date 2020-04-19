@@ -64,11 +64,7 @@ def test_session_object():
     selected = sess.select(index)
     assert isinstance(selected, session.Session)
     assert len(selected.data) == len(index)
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> master
     sess = udef_obj.create_session()
     assert isinstance(sess, session.Session)
     #assert isinstance(sess.data, list)
@@ -135,7 +131,6 @@ def test_epochs_object():
 
     assert isinstance(selected, session.Epochs)
     assert len(selected.data) == len(index)
-<<<<<<< HEAD
 
 def test_data_object():
     #Test for missing values in messages, event, and trial markers
@@ -198,5 +193,3 @@ def test_data_object():
     assert isinstance(udef_obj.calibration, dict)
     assert isinstance(udef_obj.messages, dict)
     assert isinstance(udef_obj.events, dict)
-=======
->>>>>>> master
