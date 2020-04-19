@@ -60,6 +60,11 @@ def test_session_object():
     assert isinstance(sum['min'], float)
     assert isinstance(sum['max'], float)
 
+    index = [0,1,5,7,8,4,20,15,14,22,30]
+    selected = sess.select(index)
+    assert isinstance(selected, session.Session)
+    assert len(selected.data) == len(index)
+
     sess = udef_obj.create_session()
     assert isinstance(sess, session.Session)
     #assert isinstance(sess.data, list)
@@ -74,6 +79,11 @@ def test_session_object():
     assert isinstance(sum['length'], int)
     assert isinstance(sum['min'], float)
     assert isinstance(sum['max'], float)
+
+    index = [0,1,5,7,8,4,20,15,14,22,30]
+    selected = sess.select(index)
+    assert isinstance(selected, session.Session)
+    assert len(selected.data) == len(index)
 
 def test_epochs_object():
     cleaned_default = data.pupil_size_remove_eye_blinks(default_obj, buffer=50)
@@ -93,6 +103,12 @@ def test_epochs_object():
 
     assert test_epochs.get_values().shape[1] == 200
 
+    index = [0,1,5,7,8,4,20,15,14,22,30]
+    selected = test_epochs.select(index)
+
+    assert isinstance(selected, session.Epochs)
+    assert len(selected.data) == len(index)
+
     cleaned_udef = data.pupil_size_remove_eye_blinks(udef_obj, buffer=50)
     event_timestamps = np.array(cleaned_udef.trial_markers['start']) + 1000  # Buffer for baslining
     test_epochs = cleaned_udef.create_epochs(event_timestamps,
@@ -107,6 +123,14 @@ def test_epochs_object():
     assert isinstance(sum['length'], int)
     assert isinstance(sum['min'], float)
     assert isinstance(sum['max'], float)
+
+    assert test_epochs.get_values().shape[1] == 200
+
+    index = [0,1,5,7,8,4,20,15,14,22,30]
+    selected = test_epochs.select(index)
+
+    assert isinstance(selected, session.Epochs)
+    assert len(selected.data) == len(index)
 
 def test_data_object():
     #Test for missing values in messages, event, and trial markers
