@@ -48,8 +48,7 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
         end_time = ""
         flag = False
         events = []
-        events_dict = {"EBLINK R":[], "EFIX R":[], "ESACC R":[], "SBLINK R":[], "SFIX R":[], "SSACC R":[],
-                       "EBLINK L":[], "EFIX L":[], "ESACC L":[], "SBLINK L":[], "SFIX L":[], "SSACC L":[]}
+        events_dict = {}
         timestamps_list = []
         messages_dict = {}
         trial_markers = {"start": [], "end": []}
@@ -63,18 +62,12 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                 elements = line.split()
 
                 if line.startswith("START"):
-                    start_time = elements[1]
-                    trial_markers["start"].append(int(elements[1]))
-                    end_time = ""  # to end "END message input"
+                    start_time, trial_markers, end_time = find_start(elements, start_time, trial_markers, end_time)
 
                 # to only get END messages
                 # adds to trial_markers, messages_dict, timestamps_list
                 if line.startswith("END"):
-                    end_time = elements[1]
-                    trial_markers["end"].append(int(elements[1]))
-                    messages_dict[int(elements[1])] = elements[2:]
-                    flag = False
-                    start_time = ""
+                    end_time, trial_markers, messages_dict, flag, start_time = find_end(elements, end_time, trial_markers, messages_dict, flag, start_time)
 
                 if start_time:
                     if line.startswith(start_time):
@@ -84,43 +77,23 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                 if flag is True:
                     # will get pupil size, timestamps, and movements
                     if is_number(elements[0]):
-                        if(elements[1] == "."):
-                            timestamps_list.append(int(elements[0]))
-                            pupil_size_list.append(np.nan)
-                            movement_list[0].append(np.nan)  # x-axis
-                            movement_list[1].append(np.nan)
-                        else:
-                            timestamps_list.append(int(elements[0]))
-                            pupil_size_list.append(float(elements[1]))
-                            movement_list[0].append(float(elements[2]))  # x-axis
-                            movement_list[1].append(float(elements[3]))  # y-axis
+                        timestamps_list, pupil_size_list, movement_list = tpm_read(timestamps_list, pupil_size_list, movement_list, elements)
+
                     # Gets all messages between START and END
                     elif elements[0] == "MSG":
                         messages_dict[int(elements[1])] = elements[2:]
+
                     # Gets all events between START and END
                     elif not is_number(elements[1]):
-                        events.append(elements[0])
-                        # check if event already exist
-                        event_name = f"{elements[0]} {elements[1]}"
-                        event_list_variable = elements[2:]
-                        temp_list = []
-                        for var in event_list_variable:
-                            if var == ".":
-                                var = np.nan
-                                temp_list.append(var)
-                            else:
-                                temp_list.append(float(var))
-                        event_list_variable = temp_list
-                        event_list_variable = list(map(float,event_list_variable))
-                        events_dict[event_name].append(event_list_variable)
+                        events_dict = event_read(events_dict, elements)
 
                 # finds all the END messages that is outputed
-                if end_time:
-                    if line.startswith("MSG"):
-                        if elements[1] in messages_dict:
-                            messages_dict[int(elements[1])].append(elements[2:])
-                        else:
-                            messages_dict[int(elements[1])] = elements[2:]
+                # if end_time:
+                #     if line.startswith("MSG"):
+                #         if elements[1] in messages_dict:
+                #             messages_dict[int(elements[1])].append(elements[2:])
+                #         else:
+                #             messages_dict[int(elements[1])] = elements[2:]
         # User Defined Mode
         elif mode == "u":
             # initializes the regular expressions for start and end markers
@@ -130,19 +103,15 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                 elements = line.split()
                 # finds start time using user defined marker
                 if re.search(start_msg, line[2:]):
-                    #print(elements)
-                    start_time = elements[1]
-                    trial_markers["start"].append(int(elements[1]))
-                    flag=True
+                    start_time, trial_markers, end_time = find_start(elements, start_time, trial_markers, end_time)
+                    flag = True
                     continue
 
                 # to only get END messages using user defined marker
                 # adds to trial_markers, messages_dict, timestamps_list
                 if re.search(end_msg, line[2:]):
                     #print(elements)
-                    end_time = elements[1]
-                    trial_markers["end"].append(int(elements[1]))
-                    messages_dict[int(elements[1])] = elements[2:]
+                    end_time, trial_markers, messages_dict, flag, start_time = find_end(elements, end_time, trial_markers, messages_dict, flag, start_time)
                     flag = False
                     continue
 
@@ -150,36 +119,13 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                 if flag is True:
                     # will get pupil size, timestamps, and movements
                     if is_number(elements[0]):
-                        if(elements[1] == "."):
-                            timestamps_list.append(int(elements[0]))
-                            pupil_size_list.append(np.nan)
-                            movement_list[0].append(np.nan)  # x-axis
-                            movement_list[1].append(np.nan)
-                        else:
-                            timestamps_list.append(int(elements[0]))
-                            pupil_size_list.append(float(elements[1]))
-                            movement_list[0].append(float(elements[2]))  # x-axis
-                            movement_list[1].append(float(elements[3]))  # y-axis
+                        timestamps_list, pupil_size_list, movement_list = tpm_read(timestamps_list, pupil_size_list, movement_list, elements)
                     # Gets messages between START and END markers
                     elif elements[0] == "MSG":
                         messages_dict[elements[1]] = elements[2:]
                     # Gets all events between START and END markers
                     elif not is_number(elements[1]):
-                        events.append(elements[0])
-                        # checks if event already exists
-                        event_name = f"{elements[0]} {elements[1]}"
-                        event_list_variable = elements[2:]
-                        temp_list = []
-                        for var in event_list_variable:
-                            if var == ".":
-                                var = np.nan
-                                temp_list.append(var)
-                            else:
-                                temp_list.append(float(var))
-                        event_list_variable = temp_list
-
-                        event_list_variable = list(map(float,event_list_variable))
-                        events_dict[event_name].append(event_list_variable)
+                        events_dict = event_read(events_dict, elements)
 
                 # finds all the END messages that is outputed
                 # if end_time:
@@ -197,6 +143,57 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
     movement = np.array(movement_list)
     return Data(timestamps, pupil_size, movement, 500, {}, messages_dict,
                 events_dict, trial_markers)
+
+#find start times
+def find_start(elements, start_time, trial_markers, end_time):
+    start_time = elements[1]
+    trial_markers["start"].append(int(elements[1]))
+    end_time = ""  # to end "END message input"
+    return start_time, trial_markers, end_time
+
+#find end times
+def find_end(elements, end_time, trial_markers, messages_dict, flag, start_time):
+    end_time = elements[1]
+    trial_markers["end"].append(int(elements[1]))
+    messages_dict[int(elements[1])] = elements[2:]
+    flag = False
+    start_time = ""
+    return end_time, trial_markers, messages_dict, flag, start_time
+
+#gets timestamps, pupil size, and movement(x,y) from file
+def tpm_read(timestamps_list, pupil_size_list, movement_list, elements):
+    if(elements[1] == "."):
+        timestamps_list.append(int(elements[0]))
+        pupil_size_list.append(np.nan)
+        movement_list[0].append(np.nan)  # x-axis
+        movement_list[1].append(np.nan)
+    else:
+        timestamps_list.append(int(elements[0]))
+        pupil_size_list.append(float(elements[1]))
+        movement_list[0].append(float(elements[2]))  # x-axis
+        movement_list[1].append(float(elements[3]))  # y-axis
+    return timestamps_list, pupil_size_list, movement_list
+#gets events from file
+def event_read(events_dict, elements):
+    # events.append(elements[0])
+    # checks if event already exists
+    event_name = f"{elements[0]} {elements[1]}"
+    if event_name not in events_dict:
+        events_dict[event_name] = []
+
+    event_list_variable = elements[2:]
+    temp_list = []
+    for var in event_list_variable:
+        if var == ".":
+            var = np.nan
+            temp_list.append(var)
+        else:
+            temp_list.append(float(var))
+    event_list_variable = temp_list
+
+    temp_list = list(map(float,temp_list))
+    events_dict[event_name].append(temp_list)
+    return events_dict
 
 
 """
