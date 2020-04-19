@@ -10,6 +10,8 @@ from tkinter import ttk
 from tkinter import messagebox
 # from . import data
 
+
+#creates initial window for visualization
 class GoodBad(tk.Tk):
 
     def __init__(self, data, *args, **kwargs):
@@ -40,9 +42,11 @@ class GoodBad(tk.Tk):
         frame.tkraise()
 
 
+#Embeds graph to window
 class Pupil_Vis(tk.Frame):
 
     def __init__(self, parent, controller):
+        #data has trials values of pupil size and timestamps
         self.data = controller.data
         self.pup_size = []
         self.timestmp = []
@@ -92,7 +96,7 @@ class Pupil_Vis(tk.Frame):
         self.toolbar.update()
         self.canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-
+    #gets next graph by getting adding 1 to the current position (index)
     def next_graph(self):
         # get pupil size data from index
         self.a.clear()
@@ -115,6 +119,7 @@ class Pupil_Vis(tk.Frame):
         self.toolbar.update()
         self.canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
+    #gets previous graph by subtracting 1 to the current position (index)
     def previous_graph(self):
         # get pupil size data from index
         self.a.clear()
@@ -136,10 +141,11 @@ class Pupil_Vis(tk.Frame):
         self.toolbar.update()
         self.canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-
+    #if current graph is good, change value to 1
     def good_button_function(self):
         self.quality_list[index] = 1
 
+    #if current grpah is bad, change value to 0
     def bad_button_function(self):
         self.quality_list[index] = 0
 
