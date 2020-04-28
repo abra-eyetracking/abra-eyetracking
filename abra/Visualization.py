@@ -8,7 +8,7 @@ import numpy as np
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-# from . import data
+import data
 
 
 #creates initial window for visualization
@@ -26,28 +26,28 @@ class GoodBad(tk.Tk):
 
         self.data = data
 
-        self.frames = {}
-
-        frame = Pupil_Vis(container, self)
-
-        self.frames[Pupil_Vis] = frame
-
-        frame.grid(row=0, column=0, sticky="nsew")
-
-        self.show_frame(Pupil_Vis)
-
-    def show_frame(self, cont):
-
-        frame = self.frames[cont]
-        frame.tkraise()
+    #     self.frames = {}
+    #
+    #     frame = Pupil_Vis(container, self)
+    #
+    #     self.frames[Pupil_Vis] = frame
+    #
+    #     frame.grid(row=0, column=0, sticky="nsew")
+    #
+    #     self.show_frame(Pupil_Vis)
+    #
+    # def show_frame(self, cont):
+    #
+    #     frame = self.frames[cont]
+    #     frame.tkraise()
 
 
 #Embeds graph to window
-class Pupil_Vis(tk.Frame):
-
-    def __init__(self, parent, controller):
+# class Pupil_Vis(tk.Frame):
+#
+#     def __init__(self, parent, controller):
         #data has trials values of pupil size and timestamps
-        self.data = controller.data
+        # self.data = controller.data
         self.pup_size = []
         self.timestmp = []
         self.index = 0
@@ -55,15 +55,15 @@ class Pupil_Vis(tk.Frame):
         self.curr_quailty = 0
         self.pupil_trials = self.data.get_values()
         self.timestamp_trials = self.data.get_timestamps()
-        self.quality_list = np.zeros(len(self.pupil_trials))
+        self.quality_list = np.ones(len(self.pupil_trials)) # change to all 1
 
         #initalize timestamps in milliseconds(0-end)
         for t in range(len(self.timestamp_trials)):
-            self.timestamp_trials[t] -= self.timestamp_trials[0]
+            self.timestamp_trials[t] -= self.timestamp_trials[t][0]
 
-        tk.Frame.__init__(self, parent)
-        label = tk.Label(self, text="Pupil Size")
-        label.pack(pady=10,padx=10)
+        # tk.Frame.__init__(self, parent)
+        # label = tk.Label(self, text="Pupil Size")
+        # label.pack(pady=10,padx=10)
 
         # self.next_graph
 
@@ -93,8 +93,8 @@ class Pupil_Vis(tk.Frame):
 
         self.f = Figure(figsize=(5,5), dpi=100)
         self.a = self.f.add_subplot(111)
-        self.a.plot(self.timestamp_trials[index],
-                    self.pupil_trials[index])
+        self.a.plot(self.timestamp_trials[self.index],
+                    self.pupil_trials[self.index])
 
         self.canvas = FigureCanvasTkAgg(self.f, self)
         self.canvas.draw()
@@ -125,8 +125,8 @@ class Pupil_Vis(tk.Frame):
             pass
         self.f = Figure(figsize=(5,5), dpi=100)
         self.a = self.f.add_subplot(111)
-        self.a.plot(self.timestamp_trials[index],
-                    self.pupil_trials[index])
+        self.a.plot(self.timestamp_trials[self.index],
+                    self.pupil_trials[self.index])
 
         self.canvas = FigureCanvasTkAgg(self.f, self)
         self.canvas.draw()
@@ -157,8 +157,8 @@ class Pupil_Vis(tk.Frame):
             pass
         self.f = Figure(figsize=(5,5), dpi=100)
         self.a = self.f.add_subplot(111)
-        self.a.plot(self.timestamp_trials[index],
-                    self.pupil_trials[index])
+        self.a.plot(self.timestamp_trials[self.index],
+                    self.pupil_trials[self.index])
 
         self.canvas = FigureCanvasTkAgg(self.f, self)
         self.canvas.draw()
@@ -196,7 +196,7 @@ class Pupil_Vis(tk.Frame):
         self.my_text.pack(side = tk.TOP)
 
 
-default_obj = data.read("abra/test/asc/1211NE1.asc")
+default_obj = data.read("test/asc/1211NE1.asc")
 sess = default_obj.create_session()
 
 app = GoodBad(sess)
