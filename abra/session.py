@@ -1,7 +1,9 @@
 import numpy as np
 import random as rand
-from . import trial
-from . import session
+# from . import trial
+# from . import session
+import trial
+import session
 import copy
 
 """
@@ -92,6 +94,13 @@ class Base:
         for i in self.data:
             tmp_ls.append(i.pupil_size)
         return np.array(tmp_ls)
+
+    def get_movement(self):
+        move_list = [[],[]]
+        for i in self.data:
+            move_list[0].append(i.movement_X)
+            move_list[1].append(i.movement_y)
+        return np.array(move_list)
 
     def get_timestamps(self):
         tmp_ls = []

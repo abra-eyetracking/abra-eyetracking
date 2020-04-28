@@ -1,10 +1,13 @@
 import numpy as np
 import re
-from . import utils
+# from . import utils
+import utils
 from scipy.interpolate import interp1d
 import copy
-from . import trial
-from . import session
+# from . import trial
+# from . import session
+import trial
+import session
 
 def is_number(s):
     try:
@@ -263,6 +266,8 @@ class Data:
 
         # Get the pupil size in the events between the starting and ending markers
         trial_pupil = []
+        trial_mov_x = []
+        trial_mov_y = []
         trial_stamp = []
         for i in range(len(trial_IDX)):
             st = trial_IDX[i][0]
@@ -273,17 +278,23 @@ class Data:
 
             # Add the pupil sizes for each timestamp
             temp_pupil = []
+            temp_movex = []
+            temp_movey = []
             temp_stamp = []
             for k in idx:
                 temp_pupil.append(self.pupil_size[k])
                 temp_stamp.append(self.timestamps[k])
+                temp_movex.append(self.movement[0][k])
+                temp_movey.append(self.movement[1][k])
             trial_pupil.append(np.array(temp_pupil))
+            trial_mov_x.append(np.array(temp_movex))
+            trial_mov_y.append(np.array(temp_movey))
             trial_stamp.append(np.array(temp_stamp))
 
         # Create a list of new trials with each pupil_size
         trials = []
         for i in range(len(trial_IDX)):
-            t = trial.Trial(trial_stamp[i], trial_pupil[i])
+            t = trial.Trial(trial_stamp[i], trial_pupil[i], trial_mov_x[i], trial_mov_y[i])
             trials.append(t)
 
         # Check for conditions
@@ -310,16 +321,18 @@ class Data:
                 # Explicitly set all values beyond window size to False
                 # Enforcing the length to be the defined window size
                 idx[non_zero_idx[0][0]+win_size:]=False
-            epoch = self.pupil_size[idx]
+            epoch_pupil = self.pupil_size[idx]
+            epoch_movex = self.movement[0][idx]
+            epoch_movey = self.movement[1][idx]
             # Do baselining using the mean and standard deviation of the mean and variance
             if pupil_baseline:
                 baseline_idx = (self.timestamps >= (event_timestamps[i]-pre_event+pupil_baseline[0])) & (self.timestamps <= (event_timestamps[i]-pre_event+pupil_baseline[1]))
                 baseline_period = self.pupil_size[baseline_idx]
                 baseline_mean = np.mean(baseline_period)
                 baseline_std = np.std(baseline_period)
-                epoch = (epoch - baseline_mean)/baseline_std
+                epoch_pupil = (epoch - baseline_mean)/baseline_std
 
-            t = trial.Trial(self.timestamps[idx], epoch)
+            t = trial.Trial(self.timestamps[idx], epoch_pupil, epoch_movex, epoch_movey)
             all_epochs.append(t)
 
         epochs = session.Epochs(all_epochs, conditions)
