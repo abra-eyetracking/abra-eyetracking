@@ -2,6 +2,7 @@
 from abra import data
 from abra import trial
 from abra import session
+from abra.Visualization import Visualization
 import numpy as np
 
 
@@ -193,3 +194,37 @@ def test_data_object():
     assert isinstance(udef_obj.calibration, dict)
     assert isinstance(udef_obj.messages, dict)
     assert isinstance(udef_obj.events, dict)
+
+def test_visualization_object():
+    default_obj
+    udef_obj
+    default_sess = default_obj.create_session()
+    udef_sess = udef_obj.create_session()
+
+    default_app = Visualization(default_sess)
+    udef_app = Visualization(udef_sess)
+
+    test_quality_default = np.random.randint(2, size = len(default_app.quality_list))
+    test_quality_udef = np.random.randint(2, size = len(udef_app.quality_list))
+
+    for i in range(len(test_quality_default)):
+        assert default_app.index == i
+
+        if test_quality_default[i] == 0:
+            default_app.bad_button_function()
+        elif test_quality_default[i] == 1:
+            default_app.good_button_function()
+        if i < len(test_quality_default)-1:
+            default_app.next_graph()
+    assert np.array_equal(default_app.quality_list, test_quality_default)
+
+    for i in range(len(test_quality_udef)):
+        assert udef_app.index == i
+
+        if test_quality_udef[i] == 0:
+            udef_app.bad_button_function()
+        elif test_quality_udef[i] == 1:
+            udef_app.good_button_function()
+        if i < len(test_quality_udef)-1:
+            udef_app.next_graph()
+    assert np.array_equal(udef_app.quality_list, test_quality_udef)

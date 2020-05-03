@@ -1,9 +1,7 @@
 import numpy as np
 import random as rand
-# from . import trial
-# from . import session
-import trial
-import session
+from . import trial
+from . import session
 import copy
 
 """
@@ -120,6 +118,24 @@ class Base:
         new.conditions = new_cond
 
         return new
+
+    def plot_movement(self, trial_num):
+        index = trial_num - 1
+        m = self.get_movement()
+
+        plt.plot(m[0][index], m[1][index])
+        plt.title('Movement: Trial %1.f' % trial_num)
+        plt.xlabel('Horizontal Eye Movement')
+        plt.ylabel('Vertical Eye Movement')
+        plt.show()
+    def plot_xy_movement(self, trial_num):
+        index = trial_num - 1
+        m = self.get_movement()
+        plt.plot(range(len(m[0][index])), m[0][index], label = 'x-axis movement')
+        plt.plot(range(len(m[0][index])), m[1][index], label = 'y-axis movement')
+        plt.legend()
+        plt.title('x-axis vs y-axis Movement: Trial %1.f' % trial_num)
+        plt.show()
 
 class Session(Base):
     def __init__(self, trials, conditions=None):

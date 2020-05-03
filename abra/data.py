@@ -1,13 +1,10 @@
 import numpy as np
 import re
-# from . import utils
-import utils
+from . import utils
 from scipy.interpolate import interp1d
 import copy
-# from . import trial
-# from . import session
-import trial
-import session
+from . import trial
+from . import session
 
 def is_number(s):
     try:
@@ -330,7 +327,7 @@ class Data:
                 baseline_period = self.pupil_size[baseline_idx]
                 baseline_mean = np.mean(baseline_period)
                 baseline_std = np.std(baseline_period)
-                epoch_pupil = (epoch - baseline_mean)/baseline_std
+                epoch_pupil = (epoch_pupil - baseline_mean)/baseline_std
 
             t = trial.Trial(self.timestamps[idx], epoch_pupil, epoch_movex, epoch_movey)
             all_epochs.append(t)

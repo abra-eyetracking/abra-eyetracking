@@ -8,11 +8,11 @@ import numpy as np
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
-import data
+from . import data
 
 
 #creates initial window for visualization
-class GoodBad(tk.Tk):
+class Visualization(tk.Tk):
 
     def __init__(self, data, *args, **kwargs):
 
@@ -26,28 +26,7 @@ class GoodBad(tk.Tk):
 
         self.data = data
 
-    #     self.frames = {}
-    #
-    #     frame = Pupil_Vis(container, self)
-    #
-    #     self.frames[Pupil_Vis] = frame
-    #
-    #     frame.grid(row=0, column=0, sticky="nsew")
-    #
-    #     self.show_frame(Pupil_Vis)
-    #
-    # def show_frame(self, cont):
-    #
-    #     frame = self.frames[cont]
-    #     frame.tkraise()
-
-
-#Embeds graph to window
-# class Pupil_Vis(tk.Frame):
-#
-#     def __init__(self, parent, controller):
         #data has trials values of pupil size and timestamps
-        # self.data = controller.data
         self.pup_size = []
         self.timestmp = []
         self.index = 0
@@ -60,12 +39,6 @@ class GoodBad(tk.Tk):
         #initalize timestamps in milliseconds(0-end)
         for t in range(len(self.timestamp_trials)):
             self.timestamp_trials[t] -= self.timestamp_trials[t][0]
-
-        # tk.Frame.__init__(self, parent)
-        # label = tk.Label(self, text="Pupil Size")
-        # label.pack(pady=10,padx=10)
-
-        # self.next_graph
 
         good_button = ttk.Button(self,
                             text="Good",
@@ -95,6 +68,9 @@ class GoodBad(tk.Tk):
         self.a = self.f.add_subplot(111)
         self.a.plot(self.timestamp_trials[self.index],
                     self.pupil_trials[self.index])
+        self.a.set_title('Pupil Size Trial {}'.format(str(self.index+1)))
+        self.a.set_xlabel('Time (ms)')
+        self.a.set_ylabel('Pupil Size')
 
         self.canvas = FigureCanvasTkAgg(self.f, self)
         self.canvas.draw()
@@ -127,6 +103,9 @@ class GoodBad(tk.Tk):
         self.a = self.f.add_subplot(111)
         self.a.plot(self.timestamp_trials[self.index],
                     self.pupil_trials[self.index])
+        self.a.set_title('Pupil Size Trial {}'.format(str(self.index+1)))
+        self.a.set_xlabel('Time (ms)')
+        self.a.set_ylabel('Pupil Size')
 
         self.canvas = FigureCanvasTkAgg(self.f, self)
         self.canvas.draw()
@@ -134,16 +113,15 @@ class GoodBad(tk.Tk):
                                          fill=tk.BOTH,
                                          expand=True)
 
-        # self.toolbar = NavigationToolbar2Tk(self.canvas, self)
         self.toolbar.update()
         self.canvas._tkcanvas.pack(side=tk.BOTTOM,
                                    fill=tk.BOTH,
                                    expand=True)
-
         self.my_text.pack_forget()
         self.my_text = ttk.Label(self,
                                 text= f"Graph: {self.index +1}     {self.quality_list[self.index]}")
         self.my_text.pack(side = tk.TOP)
+
     #gets previous graph by subtracting 1 to the current position (index)
     def previous_graph(self):
         # get pupil size data from index
@@ -159,14 +137,15 @@ class GoodBad(tk.Tk):
         self.a = self.f.add_subplot(111)
         self.a.plot(self.timestamp_trials[self.index],
                     self.pupil_trials[self.index])
+        self.a.set_title('Pupil Size Trial {}'.format(str(self.index+1)))
+        self.a.set_xlabel('Time (ms)')
+        self.a.set_ylabel('Pupil Size')
 
         self.canvas = FigureCanvasTkAgg(self.f, self)
         self.canvas.draw()
         self.canvas.get_tk_widget().pack(side=tk.BOTTOM,
                                          fill=tk.BOTH,
                                          expand=True)
-
-        # self.toolbar = NavigationToolbar2Tk(self.canvas, self)
         self.toolbar.update()
         self.canvas._tkcanvas.pack(side=tk.BOTTOM,
                                    fill=tk.BOTH,
@@ -194,11 +173,3 @@ class GoodBad(tk.Tk):
         self.my_text = ttk.Label(self,
                                  text= f"Graph: {self.index +1}     {self.quality_list[self.index]}")
         self.my_text.pack(side = tk.TOP)
-
-
-default_obj = data.read("test/asc/1211NE1.asc")
-sess = default_obj.create_session()
-
-app = GoodBad(sess)
-# app.read_data(data)
-app.mainloop()
