@@ -18,15 +18,20 @@ def is_number(s):
 Read method will read in the ascii file and extract the data
 "file_name" will take in the name of the file you are trying
 to extract data from
+
 mode: d or u
 d = "defualt"
 u = user defined
+
 "default" will use the default start and end times given in the file
 "user defined" will take in "start_msg" and "end_msg" to use as the
+
 start and end marker
 "start_msg" will use regular expression to identify the user inputed
+
 message markers
 ex. r"TRIAL \d START"
+
 "end_msg" will use regular expression to identify the user inputed end
 message makers
 ex. r"TRIAL \d END"
