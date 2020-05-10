@@ -339,3 +339,8 @@ class Data:
 
         epochs = session.Epochs(all_epochs, conditions)
         return epochs
+
+        def check_pupil_data(self, data_check):
+            vis = Visualization(data_check)
+            vis.mainloop()
+            return vis
