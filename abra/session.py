@@ -93,6 +93,13 @@ class Base:
             tmp_ls.append(i.pupil_size)
         return np.array(tmp_ls)
 
+    def get_movement(self):
+        move_list = [[],[]]
+        for i in self.data:
+            move_list[0].append(i.movement_X)
+            move_list[1].append(i.movement_y)
+        return np.array(move_list)
+
     def get_timestamps(self):
         tmp_ls = []
         for i in self.data:
@@ -111,6 +118,24 @@ class Base:
         new.conditions = new_cond
 
         return new
+
+    def plot_movement(self, trial_num):
+        index = trial_num - 1
+        m = self.get_movement()
+
+        plt.plot(m[0][index], m[1][index])
+        plt.title('Movement: Trial %1.f' % trial_num)
+        plt.xlabel('Horizontal Eye Movement')
+        plt.ylabel('Vertical Eye Movement')
+        plt.show()
+    def plot_xy_movement(self, trial_num):
+        index = trial_num - 1
+        m = self.get_movement()
+        plt.plot(range(len(m[0][index])), m[0][index], label = 'x-axis movement')
+        plt.plot(range(len(m[0][index])), m[1][index], label = 'y-axis movement')
+        plt.legend()
+        plt.title('x-axis vs y-axis Movement: Trial %1.f' % trial_num)
+        plt.show()
 
 class Session(Base):
     def __init__(self, trials, conditions=None):
