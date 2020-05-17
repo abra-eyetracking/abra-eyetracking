@@ -2,7 +2,7 @@
 from abra import data
 from abra import trial
 from abra import session
-from abra.Visualization import Visualization
+# from abra.Visualization import Visualization
 import numpy as np
 
 
