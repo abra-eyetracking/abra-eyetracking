@@ -271,6 +271,10 @@ class Data:
         trial_mov_x = []
         trial_mov_y = []
         trial_stamp = []
+        trial_event_L_fix = []
+        trial_event_R_fix = []
+        index_L = 0
+        index_R = 0
         for i in range(len(trial_IDX)):
             st = trial_IDX[i][0]
             en = trial_IDX[i][1]
@@ -283,20 +287,33 @@ class Data:
             temp_movex = []
             temp_movey = []
             temp_stamp = []
+            temp_L_event = []
+            temp_R_event = []
             for k in idx:
                 temp_pupil.append(self.pupil_size[k])
                 temp_stamp.append(self.timestamps[k])
                 temp_movex.append(self.movement[0][k])
                 temp_movey.append(self.movement[1][k])
+                if('EFIX L' in self.events and index_L < len(self.events['EFIX L']) and self.events['EFIX L'][index_L][1] == self.timestamps[k]):
+                    temp_L_event.append(self.events['EFIX L'][index_L])
+                    index_L += 1
+                if('EFIX R' in self.events and index_R < len(self.events['EFIX R']) and self.events['EFIX R'][index_R][1] == self.timestamps[k]):
+                    temp_R_event.append(self.events['EFIX R'][index_R])
+                    index_R += 1
             trial_pupil.append(np.array(temp_pupil))
             trial_mov_x.append(np.array(temp_movex))
             trial_mov_y.append(np.array(temp_movey))
             trial_stamp.append(np.array(temp_stamp))
+            trial_event_L_fix.append(np.array(temp_L_event))
+            trial_event_R_fix.append(np.array(temp_R_event))
+
 
         # Create a list of new trials with each pupil_size
         trials = []
         for i in range(len(trial_IDX)):
-            t = trial.Trial(trial_stamp[i], trial_pupil[i], trial_mov_x[i], trial_mov_y[i])
+            t = trial.Trial(trial_stamp[i], trial_pupil[i],
+                            trial_mov_x[i], trial_mov_y[i],
+                            trial_event_L_fix[i], trial_event_R_fix[i])
             trials.append(t)
 
         # Check for conditions
@@ -324,8 +341,8 @@ class Data:
                 # Enforcing the length to be the defined window size
                 idx[non_zero_idx[0][0]+win_size:]=False
             epoch_pupil = self.pupil_size[idx]
-            epoch_movex = self.movement[0][idx]
-            epoch_movey = self.movement[1][idx]
+            epoch_movex = self.movement[1][idx]
+            epoch_movey = self.movement[0][idx]
             # Do baselining using the mean and standard deviation of the mean and variance
             if pupil_baseline:
                 baseline_idx = (self.timestamps >= (event_timestamps[i]-pre_event+pupil_baseline[0])) & (self.timestamps <= (event_timestamps[i]-pre_event+pupil_baseline[1]))
