@@ -1,3 +1,4 @@
 abra
 numpy
 scipy
+matplotlib

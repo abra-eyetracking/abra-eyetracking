@@ -6,3 +6,5 @@ build/
 dist/
 edf2ascii/
 logo.jpg
+*.pyc
+.ipynb_checkpoints/
