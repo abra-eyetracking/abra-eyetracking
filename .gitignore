@@ -6,3 +6,4 @@ build/
 dist/
 edf2ascii/
 logo.jpg
+*.pyc
