@@ -1,4 +1,4 @@
-# object unit testing
+get_pupil# object unit testing
 from abra import data
 from abra import trial
 from abra import session
@@ -101,7 +101,7 @@ def test_epochs_object():
     assert isinstance(sum['min'], float)
     assert isinstance(sum['max'], float)
 
-    assert test_epochs.get_values().shape[1] == 200
+    assert test_epochs.get_pupil().shape[1] == 200
 
     index = [0,1,5,7,8,4,20,15,14,22,30]
     selected = test_epochs.select(index)
@@ -124,7 +124,7 @@ def test_epochs_object():
     assert isinstance(sum['min'], float)
     assert isinstance(sum['max'], float)
 
-    assert test_epochs.get_values().shape[1] == 200
+    assert test_epochs.get_pupil().shape[1] == 200
 
     index = [0,1,5,7,8,4,20,15,14,22,30]
     selected = test_epochs.select(index)
