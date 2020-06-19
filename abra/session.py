@@ -59,13 +59,13 @@ class Base:
     def summary(self):
         summary = {}
 
-        '''Pupil Data'''
+        # Pupil Data
         pup_data = []
         for i in self.data:
             for j in i.pupil_size:
                 pup_data.append(j)
 
-        '''Statistics and Shape of pupil_size across all session'''
+        # Statistics and Shape of pupil_size across all session
         pupil_mean = np.nanmean(pup_data)
         summary['mean'] = pupil_mean
         pupil_variance = np.nanvar(pup_data)
@@ -113,8 +113,10 @@ class Base:
         fix = [[] for _ in range(tmp_ls.shape[0])]
         fix_list = [[] for _ in range(tmp_ls.shape[0])]
         RL = ''
+        # index = 0
 
         count = 0
+        # print(len(self.data[0].event_R))
         if(len(self.data[0].event_L) > 0):
             RL = 'L'
         elif(len(self.data[0].event_R ) > 0):
@@ -122,6 +124,7 @@ class Base:
         else:
             print('NO FIXATION FOUND')
             pass
+        # print(self.data[0].event_R)
         if(RL == 'L'):
             for i in tmp_ls:
                 for j in self.data:
@@ -135,6 +138,9 @@ class Base:
                     for j in h.event_R:
                         if(j[1] in i):
                             fix[count].append([j[0],j[1]])
+                            # fix[count].append(index)
+                            # index += 0
+                            # print(index)
                 count += 1
 
         for index in range(len(tmp_ls)):
@@ -156,8 +162,14 @@ class Base:
                     if(in_fix):
                         movements[0].append(movement_list[0][index][time_index])
                         movements[1].append(movement_list[1][index][time_index])
+            # print(index)
             fix_list[index].append(movements)
+                # movements[0].append(movement_list[0][index][fix_index])
+                # movements[1].append(movement_list[1][index][fix_index])
+            # fix_list[index].append(movements)
+        # print(fix_list[])
         return np.array(fix_list)
+
 
 
     def select(self, indexes):
