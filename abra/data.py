@@ -42,7 +42,7 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
          end_msg=r"TRIAL \d{1,2} END", autoepoch=False):
     # TODO parse info
     if not filename.endswith(".asc"):
-        # Raise an error for checking file name extension
+        """Raise an error for checking file name extension"""
         pass
     if not mode == "d" or not mode == "u":
         # raise exception invalid mode
@@ -61,7 +61,7 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
         movement_list = [[], []]
         rate_list = {}
 
-        # Default Mode
+        """Default Mode"""
         if mode == "d":
             for num, line in enumerate(f, 1):
                 elements = line.split()
@@ -69,8 +69,8 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                 if line.startswith("START"):
                     start_time, trial_markers, end_time = find_start(elements, start_time, trial_markers, end_time)
 
-                # to only get END messages
-                # adds to trial_markers, messages_dict, timestamps_list
+                """to only get END messages
+                adds to trial_markers, messages_dict, timestamps_list"""
                 if line.startswith("END"):
                     end_time, trial_markers, messages_dict, flag, start_time = find_end(elements, end_time, trial_markers, messages_dict, flag, start_time)
 
@@ -78,85 +78,67 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                     if line.startswith(start_time):
                         flag = True
 
-                # check for start
+                """check for start"""
                 if flag is True:
-                    # will get pupil size, timestamps, and movements
+                    """will get pupil size, timestamps, and movements"""
                     if is_number(elements[0]):
                         timestamps_list, pupil_size_list, movement_list = tpm_read(timestamps_list, pupil_size_list, movement_list, elements)
 
-                    # Gets all messages between START and END
+                    """Gets all messages between START and END"""
                     elif elements[0] == "MSG":
                         messages_dict[int(elements[1])] = elements[2:]
 
-                    # Gets all events between START and END
+                    """Gets all events between START and END"""
                     elif not is_number(elements[1]):
                         events_dict = event_read(events_dict, elements)
 
-                # finds all the END messages that is outputed
-                # if end_time:
-                #     if line.startswith("MSG"):
-                #         if elements[1] in messages_dict:
-                #             messages_dict[int(elements[1])].append(elements[2:])
-                #         else:
-                #             messages_dict[int(elements[1])] = elements[2:]
-        # User Defined Mode
+        """User Defined Mode"""
         elif mode == "u":
-            # initializes the regular expressions for start and end markers
+            """initializes the regular expressions for start and end markers"""
             start_msg = re.compile(start_msg)
             end_msg = re.compile(end_msg)
             for num, line in enumerate(f, 1):
                 elements = line.split()
-                # finds start time using user defined marker
+                """finds start time using user defined marker"""
                 if re.search(start_msg, line[2:]):
                     start_time, trial_markers, end_time = find_start(elements, start_time, trial_markers, end_time)
                     flag = True
                     continue
 
-                # to only get END messages using user defined marker
-                # adds to trial_markers, messages_dict, timestamps_list
+                """to only get END messages using user defined marker
+                   adds to trial_markers, messages_dict, timestamps_list"""
                 if re.search(end_msg, line[2:]):
-                    #print(elements)
                     end_time, trial_markers, messages_dict, flag, start_time = find_end(elements, end_time, trial_markers, messages_dict, flag, start_time)
                     flag = False
                     continue
 
-                # check for start marker
+                """check for start marker"""
                 if flag is True:
-                    # will get pupil size, timestamps, and movements
+                    """will get pupil size, timestamps, and movements"""
                     if is_number(elements[0]):
                         timestamps_list, pupil_size_list, movement_list = tpm_read(timestamps_list, pupil_size_list, movement_list, elements)
-                    # Gets messages between START and END markers
+                    """Gets messages between START and END markers"""
                     elif elements[0] == "MSG":
                         messages_dict[elements[1]] = elements[2:]
-                    # Gets all events between START and END markers
+                    """Gets all events between START and END markers"""
                     elif not is_number(elements[1]):
                         events_dict = event_read(events_dict, elements)
 
-                # finds all the END messages that is outputed
-                # if end_time:
-                #     if line.startswith("MSG"):
-                #         if elements[1] in messages_dict:
-                #             messages_dict[int(elements[1])].append(elements[2:])
-                #         else:
-                #             messages_dict[int(elements[1])] = elements[2:]
-
-
-
-    # convert list to numpy array
+    """convert list to numpy array"""
     timestamps = np.array(timestamps_list)
     pupil_size = np.array(pupil_size_list)
     movement = np.array(movement_list)
     return Data(timestamps, pupil_size, movement, 500, {}, messages_dict,
                 events_dict, trial_markers)
 
-#find start times
+"""find start times"""
 def find_start(elements, start_time, trial_markers, end_time):
     start_time = elements[1]
     trial_markers["start"].append(int(elements[1]))
     end_time = ""  # to end "END message input"
     return start_time, trial_markers, end_time
 
-#find end times
+"""find end times"""
 def find_end(elements, end_time, trial_markers, messages_dict, flag, start_time):
     end_time = elements[1]
     trial_markers["end"].append(int(elements[1]))
@@ -165,7 +147,7 @@ def find_end(elements, end_time, trial_markers, messages_dict, flag, start_time)
     start_time = ""
     return end_time, trial_markers, messages_dict, flag, start_time
 
-#gets timestamps, pupil size, and movement(x,y) from file
+"""gets timestamps, pupil size, and movement(x,y) from file"""
 def tpm_read(timestamps_list, pupil_size_list, movement_list, elements):
     if(elements[1] == "."):
         timestamps_list.append(int(elements[0]))
@@ -175,13 +157,12 @@ def tpm_read(timestamps_list, pupil_size_list, movement_list, elements):
     else:
         timestamps_list.append(int(elements[0]))
         pupil_size_list.append(float(elements[1]))
-        movement_list[0].append(float(elements[2]))  # x-axis
-        movement_list[1].append(float(elements[3]))  # y-axis
+        movement_list[0].append(float(elements[3]))  # x-axis
+        movement_list[1].append(float(elements[2]))  # y-axis
     return timestamps_list, pupil_size_list, movement_list
-#gets events from file
+
 def event_read(events_dict, elements):
-    # events.append(elements[0])
-    # checks if event already exists
+    """checks if event already exists"""
     event_name = f"{elements[0]} {elements[1]}"
     if event_name not in events_dict:
         events_dict[event_name] = []
@@ -206,14 +187,14 @@ The remove_eye_blinks method replaces the eyeblinks (NAS) with interpolated data
 
 """
 def pupil_size_remove_eye_blinks(abra_obj, buffer=50, interpolate='linear', inplace=False):
-    # Creating a buffeir
+    """Creating a buffer"""
     pupilsize_ = np.copy(abra_obj.pupil_size)
     blink_times = np.isnan(pupilsize_)
     for j in range(len(blink_times)):
         if blink_times[j]==True:
             pupilsize_[j-buffer:j+buffer]=np.nan
 
-    # Interpolate
+    """Interpolate"""
     if interpolate=='linear':
         interp_pupil_size = utils.linear_interpolate(pupilsize_)
         if inplace == True:
@@ -256,7 +237,7 @@ class Data:
         start = t_Mark['start']
         end  = t_Mark['end']
 
-        # All trial start and end markers in array ([start,end])
+        '''All trial start and end markers in array ([start,end])'''
         trial_IDX = []
         for i in range(len(start)):
             temp = []
@@ -266,7 +247,8 @@ class Data:
             temp.append(en)
             trial_IDX.append(temp)
 
-        # Get the pupil size in the events between the starting and ending markers
+        '''Get the pupil size in the events between the starting and
+        ending markers'''
         trial_pupil = []
         trial_mov_x = []
         trial_mov_y = []
@@ -279,10 +261,11 @@ class Data:
             st = trial_IDX[i][0]
             en = trial_IDX[i][1]
 
-            # Find the indexes to call the pupil size within the timestamps for a trial
+            '''Find the indexes to call the pupil size within the
+            timestamps for a trial'''
             idx = np.where((self.timestamps >= st) & (self.timestamps <= en))[0]
 
-            # Add the pupil sizes for each timestamp
+            '''Add the pupil sizes for each timestamp'''
             temp_pupil = []
             temp_movex = []
             temp_movey = []
@@ -308,7 +291,7 @@ class Data:
             trial_event_R_fix.append(np.array(temp_R_event))
 
 
-        # Create a list of new trials with each pupil_size
+        '''Create a list of new trials with each pupil_size'''
         trials = []
         for i in range(len(trial_IDX)):
             t = trial.Trial(trial_stamp[i], trial_pupil[i],
@@ -316,7 +299,7 @@ class Data:
                             trial_event_L_fix[i], trial_event_R_fix[i])
             trials.append(t)
 
-        # Check for conditions
+        '''Check for conditions'''
         num_trials = len(trials)
         if conditions is not None:
             if (len(conditions) != num_trials):
@@ -326,10 +309,10 @@ class Data:
 
 
     def create_epochs(self, event_timestamps, conditions=None, pre_event=200, post_event=200, pupil_baseline=None):
-        # Create an empty array for storing the epoch information
+        '''Create an empty array for storing the epoch information'''
         win_size = int((pre_event+post_event)*self.sample_rate/1000)
         all_epochs = []
-        # Iterate timestamp events get each epoch pupil size
+        '''Iterate timestamp events get each epoch pupil size'''
         for i in range(len(event_timestamps)):
             start = event_timestamps[i]-pre_event
             end = event_timestamps[i]+post_event
@@ -337,13 +320,15 @@ class Data:
 
             if np.sum(idx) != win_size:
                 non_zero_idx = np.nonzero(idx)
-                # Explicitly set all values beyond window size to False
-                # Enforcing the length to be the defined window size
+                '''Explicitly set all values beyond window size to False
+                Enforcing the length to be the defined window size'''
                 idx[non_zero_idx[0][0]+win_size:]=False
             epoch_pupil = self.pupil_size[idx]
             epoch_movex = self.movement[1][idx]
             epoch_movey = self.movement[0][idx]
-            # Do baselining using the mean and standard deviation of the mean and variance
+
+            '''Do baselining using the mean and standard deviation
+             of the mean and variance'''
             if pupil_baseline:
                 baseline_idx = (self.timestamps >= (event_timestamps[i]-pre_event+pupil_baseline[0])) & (self.timestamps <= (event_timestamps[i]-pre_event+pupil_baseline[1]))
                 baseline_period = self.pupil_size[baseline_idx]
@@ -356,8 +341,3 @@ class Data:
 
         epochs = session.Epochs(all_epochs, conditions)
         return epochs
-
-        def check_pupil_data(self, data_check):
-            vis = Visualization(data_check)
-            vis.mainloop()
-            return vis
