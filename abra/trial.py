@@ -6,11 +6,13 @@ The trial class for individual trials within the 'data' data structure
 
 class Trial:
 
-    def __init__(self, timestamps, pupil_size, movement_X = [], movement_y = []):
+    def __init__(self, timestamps, pupil_size, movement_X = [], movement_y = [], event_L = [], event_R = []):
         self.timestamps = timestamps
         self.pupil_size = pupil_size
         self.movement_X = movement_X
         self.movement_y = movement_y
+        self.event_L = event_L
+        self.event_R = event_R
         #TODO: add movement size
 
     def summary(self):

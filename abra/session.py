@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import random as rand
 from . import trial
 from . import session
@@ -106,6 +107,70 @@ class Base:
             tmp_ls.append(i.timestamps)
         return np.array(tmp_ls)
 
+    def get_fixation(self):
+        tmp_ls = np.array(self.get_timestamps())
+        movement_list = self.get_movement()
+        fix = [[] for _ in range(tmp_ls.shape[0])]
+        fix_list = [[] for _ in range(tmp_ls.shape[0])]
+        RL = ''
+        # index = 0
+
+        count = 0
+        # print(len(self.data[0].event_R))
+        if(len(self.data[0].event_L) > 0):
+            RL = 'L'
+        elif(len(self.data[0].event_R ) > 0):
+            RL = 'R'
+        else:
+            print('NO FIXATION FOUND')
+            pass
+        # print(self.data[0].event_R)
+        if(RL == 'L'):
+            for i in tmp_ls:
+                for j in self.data:
+                    if(j.event_L[1] in i):
+                        fix[count].append([j.event_L[0],j.event_L[1]])
+                count += 1
+        elif(RL == 'R'):
+            for i in tmp_ls:
+                index = 0
+                for h in self.data:
+                    for j in h.event_R:
+                        if(j[1] in i):
+                            fix[count].append([j[0],j[1]])
+                            # fix[count].append(index)
+                            # index += 0
+                            # print(index)
+                count += 1
+
+        for index in range(len(tmp_ls)):
+            movements = [[],[]]
+            in_fix = False
+            for fix_index in fix[index]:
+                for time_index in range(len(tmp_ls[index])):
+                    if(fix_index[0] == tmp_ls[index][time_index]):
+                        in_fix = True
+                        # print(1)
+                        movements[0].append(movement_list[0][index][time_index])
+                        # print(movement_list[0][index][time_index])
+                        movements[1].append(movement_list[1][index][time_index])
+                    elif(fix_index[1] == tmp_ls[index][time_index]):
+                        in_fix = False
+                        movements[0].append(movement_list[0][index][time_index])
+                        movements[1].append(movement_list[1][index][time_index])
+
+                    if(in_fix):
+                        movements[0].append(movement_list[0][index][time_index])
+                        movements[1].append(movement_list[1][index][time_index])
+            # print(index)
+            fix_list[index].append(movements)
+                # movements[0].append(movement_list[0][index][fix_index])
+                # movements[1].append(movement_list[1][index][fix_index])
+            # fix_list[index].append(movements)
+        # print(fix_list[])
+        return np.array(fix_list)
+
+
 
     def select(self, indexes):
         new = copy.deepcopy(self)
@@ -122,8 +187,9 @@ class Base:
     def plot_movement(self, trial_num):
         index = trial_num - 1
         m = self.get_movement()
-
-        plt.plot(m[0][index], m[1][index])
+        plt.xlim(0,1920)
+        plt.ylim(0,1080)
+        plt.plot(m[1][index], m[0][index])
         plt.title('Movement: Trial %1.f' % trial_num)
         plt.xlabel('Horizontal Eye Movement')
         plt.ylabel('Vertical Eye Movement')

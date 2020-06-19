@@ -92,13 +92,7 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                     elif not is_number(elements[1]):
                         events_dict = event_read(events_dict, elements)
 
-                # finds all the END messages that is outputed
-                # if end_time:
-                #     if line.startswith("MSG"):
-                #         if elements[1] in messages_dict:
-                #             messages_dict[int(elements[1])].append(elements[2:])
-                #         else:
-                #             messages_dict[int(elements[1])] = elements[2:]
+
         # User Defined Mode
         elif mode == "u":
             # initializes the regular expressions for start and end markers
@@ -132,15 +126,6 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                     elif not is_number(elements[1]):
                         events_dict = event_read(events_dict, elements)
 
-                # finds all the END messages that is outputed
-                # if end_time:
-                #     if line.startswith("MSG"):
-                #         if elements[1] in messages_dict:
-                #             messages_dict[int(elements[1])].append(elements[2:])
-                #         else:
-                #             messages_dict[int(elements[1])] = elements[2:]
-
-
 
     # convert list to numpy array
     timestamps = np.array(timestamps_list)
@@ -149,12 +134,14 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
     return Data(timestamps, pupil_size, movement, 500, {}, messages_dict,
                 events_dict, trial_markers)
 
+
 #find start times
 def find_start(elements, start_time, trial_markers, end_time):
     start_time = elements[1]
     trial_markers["start"].append(int(elements[1]))
     end_time = ""  # to end "END message input"
     return start_time, trial_markers, end_time
+
 
 #find end times
 def find_end(elements, end_time, trial_markers, messages_dict, flag, start_time):
@@ -164,6 +151,7 @@ def find_end(elements, end_time, trial_markers, messages_dict, flag, start_time)
     flag = False
     start_time = ""
     return end_time, trial_markers, messages_dict, flag, start_time
+
 
 #gets timestamps, pupil size, and movement(x,y) from file
 def tpm_read(timestamps_list, pupil_size_list, movement_list, elements):
@@ -175,12 +163,13 @@ def tpm_read(timestamps_list, pupil_size_list, movement_list, elements):
     else:
         timestamps_list.append(int(elements[0]))
         pupil_size_list.append(float(elements[1]))
-        movement_list[0].append(float(elements[2]))  # x-axis
-        movement_list[1].append(float(elements[3]))  # y-axis
+        movement_list[0].append(float(elements[3]))  # x-axis
+        movement_list[1].append(float(elements[2]))  # y-axis
     return timestamps_list, pupil_size_list, movement_list
+
+
 #gets events from file
 def event_read(events_dict, elements):
-    # events.append(elements[0])
     # checks if event already exists
     event_name = f"{elements[0]} {elements[1]}"
     if event_name not in events_dict:
@@ -271,6 +260,10 @@ class Data:
         trial_mov_x = []
         trial_mov_y = []
         trial_stamp = []
+        trial_event_L_fix = []
+        trial_event_R_fix = []
+        index_L = 0
+        index_R = 0
         for i in range(len(trial_IDX)):
             st = trial_IDX[i][0]
             en = trial_IDX[i][1]
@@ -283,20 +276,33 @@ class Data:
             temp_movex = []
             temp_movey = []
             temp_stamp = []
+            temp_L_event = []
+            temp_R_event = []
             for k in idx:
                 temp_pupil.append(self.pupil_size[k])
                 temp_stamp.append(self.timestamps[k])
                 temp_movex.append(self.movement[0][k])
                 temp_movey.append(self.movement[1][k])
+                if('EFIX L' in self.events and index_L < len(self.events['EFIX L']) and self.events['EFIX L'][index_L][1] == self.timestamps[k]):
+                    temp_L_event.append(self.events['EFIX L'][index_L])
+                    index_L += 1
+                if('EFIX R' in self.events and index_R < len(self.events['EFIX R']) and self.events['EFIX R'][index_R][1] == self.timestamps[k]):
+                    temp_R_event.append(self.events['EFIX R'][index_R])
+                    index_R += 1
             trial_pupil.append(np.array(temp_pupil))
             trial_mov_x.append(np.array(temp_movex))
             trial_mov_y.append(np.array(temp_movey))
             trial_stamp.append(np.array(temp_stamp))
+            trial_event_L_fix.append(np.array(temp_L_event))
+            trial_event_R_fix.append(np.array(temp_R_event))
+
 
         # Create a list of new trials with each pupil_size
         trials = []
         for i in range(len(trial_IDX)):
-            t = trial.Trial(trial_stamp[i], trial_pupil[i], trial_mov_x[i], trial_mov_y[i])
+            t = trial.Trial(trial_stamp[i], trial_pupil[i],
+                            trial_mov_x[i], trial_mov_y[i],
+                            trial_event_L_fix[i], trial_event_R_fix[i])
             trials.append(t)
 
         # Check for conditions
@@ -324,8 +330,8 @@ class Data:
                 # Enforcing the length to be the defined window size
                 idx[non_zero_idx[0][0]+win_size:]=False
             epoch_pupil = self.pupil_size[idx]
-            epoch_movex = self.movement[0][idx]
-            epoch_movey = self.movement[1][idx]
+            epoch_movex = self.movement[1][idx]
+            epoch_movey = self.movement[0][idx]
             # Do baselining using the mean and standard deviation of the mean and variance
             if pupil_baseline:
                 baseline_idx = (self.timestamps >= (event_timestamps[i]-pre_event+pupil_baseline[0])) & (self.timestamps <= (event_timestamps[i]-pre_event+pupil_baseline[1]))
@@ -339,8 +345,3 @@ class Data:
 
         epochs = session.Epochs(all_epochs, conditions)
         return epochs
-
-        def check_pupil_data(self, data_check):
-            vis = Visualization(data_check)
-            vis.mainloop()
-            return vis
