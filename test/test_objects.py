@@ -1,4 +1,4 @@
-get_pupil# object unit testing
+# object unit testing
 from abra import data
 from abra import trial
 from abra import session

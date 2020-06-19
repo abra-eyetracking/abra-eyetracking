@@ -52,6 +52,7 @@ def shuffle(Base):
 
 class Base:
     """
+    Base Class for Session and Epoch
     """
     def __init__(self, data, conditions=None):
         self.data = data
