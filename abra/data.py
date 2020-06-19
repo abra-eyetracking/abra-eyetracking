@@ -14,32 +14,32 @@ def is_number(s):
         return False
 
 
-"""
-Read method will read in the ascii file and extract the data
-"file_name" will take in the name of the file you are trying
-to extract data from
-
-mode: d or u
-d = "defualt"
-u = user defined
-
-"default" will use the default start and end times given in the file
-"user defined" will take in "start_msg" and "end_msg" to use as the
-
-start and end marker
-"start_msg" will use regular expression to identify the user inputed
-
-message markers
-ex. r"TRIAL \d START"
-
-"end_msg" will use regular expression to identify the user inputed end
-message makers
-ex. r"TRIAL \d END"
-"""
-
-
 def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
          end_msg=r"TRIAL \d{1,2} END", autoepoch=False):
+    """
+    Read method will read in the ascii file and extract the data
+    "file_name" will take in the name of the file you are trying
+    to extract data from
+
+    mode: d or u
+    d = "defualt"
+    u = user defined
+
+    "default" will use the default start and end times given in the file
+    "user defined" will take in "start_msg" and "end_msg" to use as the
+
+    start and end marker
+    "start_msg" will use regular expression to identify the user inputed
+
+    message markers
+    ex. r"TRIAL \d START"
+
+    "end_msg" will use regular expression to identify the user inputed end
+    message makers
+    ex. r"TRIAL \d END"
+
+    Returns Data Object
+    """
     # TODO parse info
     if not filename.endswith(".asc"):
         # Raise an error for checking file name extension
@@ -135,16 +135,26 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                 events_dict, trial_markers)
 
 
-#find start times
+
 def find_start(elements, start_time, trial_markers, end_time):
+    """
+    Defines Start Times
+    - used within read method to find start time of each trial
+    - return start timestamp, updates boolean check for start and end
+    """
     start_time = elements[1]
     trial_markers["start"].append(int(elements[1]))
-    end_time = ""  # to end "END message input"
+    end_time = ""
     return start_time, trial_markers, end_time
 
 
-#find end times
+
 def find_end(elements, end_time, trial_markers, messages_dict, flag, start_time):
+    """
+    Defines End Times
+    - used within read method to find start time of each trial
+    - return End timestamp, updates boolean check for start and end
+    """
     end_time = elements[1]
     trial_markers["end"].append(int(elements[1]))
     messages_dict[int(elements[1])] = elements[2:]
@@ -153,8 +163,11 @@ def find_end(elements, end_time, trial_markers, messages_dict, flag, start_time)
     return end_time, trial_markers, messages_dict, flag, start_time
 
 
-#gets timestamps, pupil size, and movement(x,y) from file
+
 def tpm_read(timestamps_list, pupil_size_list, movement_list, elements):
+    """
+    Finds And Returns Timestamps, Pupil Size, and Movements From Each Trial
+    """
     if(elements[1] == "."):
         timestamps_list.append(int(elements[0]))
         pupil_size_list.append(np.nan)
@@ -168,9 +181,12 @@ def tpm_read(timestamps_list, pupil_size_list, movement_list, elements):
     return timestamps_list, pupil_size_list, movement_list
 
 
-#gets events from file
+
 def event_read(events_dict, elements):
-    # checks if event already exists
+    """
+    Finds And Returns Events
+    - Checks if event name already exists before appending
+    """
     event_name = f"{elements[0]} {elements[1]}"
     if event_name not in events_dict:
         events_dict[event_name] = []
@@ -190,12 +206,15 @@ def event_read(events_dict, elements):
     return events_dict
 
 
-"""
-The remove_eye_blinks method replaces the eyeblinks (NAS) with interpolated data, with a buffer of 50 data points and linear spline to do interpolation. ### Linear interpolation is what is supported right now.
 
-"""
 def pupil_size_remove_eye_blinks(abra_obj, buffer=50, interpolate='linear', inplace=False):
-    # Creating a buffeir
+    """
+    The remove_eye_blinks method replaces the eyeblinks (NAS) with
+    interpolated data, with a buffer of 50 data points and linear spline
+    to do interpolation.
+    ### Linear interpolation is what is supported right now.
+    """
+    #Buffer
     pupilsize_ = np.copy(abra_obj.pupil_size)
     blink_times = np.isnan(pupilsize_)
     for j in range(len(blink_times)):
@@ -215,15 +234,36 @@ def pupil_size_remove_eye_blinks(abra_obj, buffer=50, interpolate='linear', inpl
         print("We haven't implement anyother interpolation methods yet")
         return False
 
-"""
-time locking into a particular event.
-"""
 
-"""
-The Data class for the data structure
-"""
+
 class Data:
+    """
+    The Data class for the data structure
 
+    Use read function to create Data object
+
+    - Stores data values of timestamps, pupil_size, movement, sample_rate,
+      calibration, messages, events, trial_markers
+    - Value Types:
+        - timestamps: List (1xn)
+        - pupil_size: List (1xn)
+        - Movement: List (2xn)
+            > index 0: x-coordinates
+            > index 1: y-coordinates
+        - sample_rate: int
+        -calibration: Dictionary (not implimented yet)
+        - message: Dictionary
+            > key: timestamp integer
+            > value: message
+        - events: Dictionary
+            > key: event name
+            > value: list of [start timestamp, end timestamp,
+                              avg y-coordinate, avg x-coordinate,
+                              avg pupil size]
+        - trial_markers: Dictionary
+            > key: 'Start' or 'End'
+            > value: list of time stamps
+    """
     def __init__(self, timestamps, pupil_size, movement, sample_rate,
                  calibration, messages, events, trial_markers):
         self.timestamps = timestamps
@@ -236,10 +276,15 @@ class Data:
         self.trial_markers = trial_markers
 
 
-    """
-    This function splits the pupil size and timestamp data into its respective trials and returns an array of trial class objects
-    """
+
     def create_session(self, conditions=None):
+        """
+        This function splits the pupil size and timestamp data into
+        its respective trials and returns an array of trial class
+        objects
+
+        condition: event condition
+        """
         t_Mark = self.trial_markers
         t_Time = self.timestamps
         start = t_Mark['start']
@@ -315,9 +360,22 @@ class Data:
 
 
     def create_epochs(self, event_timestamps, conditions=None, pre_event=200, post_event=200, pupil_baseline=None):
-        # Create an empty array for storing the epoch information
+        """
+        Create Time Locking Epochs
+
+        event_timestamps: starting timestamps for all time locking events
+        conditions: event condition
+        pre_event: milliseconds before defined starting timestamps
+        post_event: milliseconds after defined starting timestamps
+        pupil_baseline: Baselining for pupil size data,
+                        baseline period will be the milliseconds
+                        before pre_event
+        """
+
+        #Create an empty array for storing the epoch information
         win_size = int((pre_event+post_event)*self.sample_rate/1000)
         all_epochs = []
+        
         # Iterate timestamp events get each epoch pupil size
         for i in range(len(event_timestamps)):
             start = event_timestamps[i]-pre_event
@@ -326,12 +384,14 @@ class Data:
 
             if np.sum(idx) != win_size:
                 non_zero_idx = np.nonzero(idx)
+
                 # Explicitly set all values beyond window size to False
                 # Enforcing the length to be the defined window size
                 idx[non_zero_idx[0][0]+win_size:]=False
             epoch_pupil = self.pupil_size[idx]
             epoch_movex = self.movement[1][idx]
             epoch_movey = self.movement[0][idx]
+
             # Do baselining using the mean and standard deviation of the mean and variance
             if pupil_baseline:
                 baseline_idx = (self.timestamps >= (event_timestamps[i]-pre_event+pupil_baseline[0])) & (self.timestamps <= (event_timestamps[i]-pre_event+pupil_baseline[1]))
