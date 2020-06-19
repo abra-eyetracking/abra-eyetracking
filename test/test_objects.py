@@ -5,8 +5,8 @@ from abra import session
 import numpy as np
 
 
-default_obj = data.read("abra/test/asc/1211NE1.asc")
-udef_obj = data.read("abra/test/asc/22205.asc", mode = 'u')
+default_obj = data.read("test/asc/1211NE1.asc")
+udef_obj = data.read("test/asc/22205.asc", mode = 'u')
 
 
 def test_trial_object():
