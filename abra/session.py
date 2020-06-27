@@ -219,22 +219,34 @@ class Base:
 
 
 
-    def select(self, indexes):
+    def select(self, indices):
+
         """
         Selects Specified Trial By Index Value
         """
 
+        is_bool = type(indices[0]) is bool
+        is_int = type(indices[0]) is int
         new = copy.deepcopy(self)
         new_data = []
         new_cond = []
-        for i in indexes:
-            new_data.append(self.data[i])
-            new_cond.append(self.conditions[i])
+
+        if is_bool:
+            for i in range(len(indices)):
+                if indices[i] == True:
+                    new_data.append(self.data[i])
+                    new_cond.append(self.conditions[i])
+        elif is_int:
+            for i in indices:
+                new_data.append(self.data[i])
+                new_cond.append(self.conditions[i])
+        else:
+            print("Please only use boolean or integer type indices")
+
         new.data = new_data
         new.conditions = new_cond
 
         return new
-
 
 
     def plot_pupil_size(self, trial_num):

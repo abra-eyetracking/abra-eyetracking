@@ -207,14 +207,10 @@ def event_read(events_dict, elements):
 
 
 
-def pupil_size_remove_eye_blinks(abra_obj, buffer=50, interpolate='linear', inplace=False):
-    """
-    The remove_eye_blinks method replaces the eyeblinks (NAS) with
-    interpolated data, with a buffer of 50 data points and linear spline
-    to do interpolation.
-    ### Linear interpolation is what is supported right now.
-    """
-    #Buffer
+
+
+def pupil_size_remove_eye_blinks(abra_obj, buffer=50, interpolate=False,interp_method = 'linear', inplace=False):
+    # Creating a buffeir
     pupilsize_ = np.copy(abra_obj.pupil_size)
     blink_times = np.isnan(pupilsize_)
     for j in range(len(blink_times)):
@@ -222,18 +218,26 @@ def pupil_size_remove_eye_blinks(abra_obj, buffer=50, interpolate='linear', inpl
             pupilsize_[j-buffer:j+buffer]=np.nan
 
     # Interpolate
-    if interpolate=='linear':
-        interp_pupil_size = utils.linear_interpolate(pupilsize_)
+    if interpolate:
+        if interp_method == 'linear':
+            interp_pupil_size = utils.linear_interpolate(pupilsize_)
+            if inplace == True:
+                abra_obj.pupil_size = interp_pupil_size
+            elif inplace == False:
+                tmp_obj = copy.deepcopy(abra_obj)
+                tmp_obj.pupil_size = interp_pupil_size
+                return tmp_obj
+        else:
+            print("We haven't implement anyother interpolation methods yet")
+            return False
+
+    else:
         if inplace == True:
-            abra_obj.pupil_size = interp_pupil_size
+            abra_obj.pupil_size = pupilsize_
         elif inplace == False:
             tmp_obj = copy.deepcopy(abra_obj)
-            tmp_obj.pupil_size = interp_pupil_size
+            tmp_obj.pupil_size = pupilsize_
             return tmp_obj
-    else:
-        print("We haven't implement anyother interpolation methods yet")
-        return False
-
 
 
 class Data:
@@ -360,6 +364,7 @@ class Data:
 
 
     def create_epochs(self, event_timestamps, conditions=None, pre_event=200, post_event=200, pupil_baseline=None):
+
         """
         Create Time Locking Epochs
 
@@ -368,29 +373,25 @@ class Data:
         pre_event: milliseconds before defined starting timestamps
         post_event: milliseconds after defined starting timestamps
         pupil_baseline: Baselining for pupil size data,
-                        baseline period will be the milliseconds
-                        before pre_event
+                     baseline period will be the milliseconds
+                     before pre_event
         """
 
-        #Create an empty array for storing the epoch information
+        # Create an empty array for storing the epoch information
         win_size = int((pre_event+post_event)*self.sample_rate/1000)
         all_epochs = []
-        
         # Iterate timestamp events get each epoch pupil size
         for i in range(len(event_timestamps)):
-            start = event_timestamps[i]-pre_event
-            end = event_timestamps[i]+post_event
-            idx = (self.timestamps >= (event_timestamps[i]-pre_event)) & (self.timestamps <= (event_timestamps[i]+post_event))
+            start = event_timestamps[i]-(pre_event*self.sample_rate/1000)
+            end = event_timestamps[i]+(post_event*self.sample_rate/1000)
+            idx = (self.timestamps > (start)) & (self.timestamps <= (end))
 
-            if np.sum(idx) != win_size:
+            if end-start != win_size:
                 non_zero_idx = np.nonzero(idx)
-
                 # Explicitly set all values beyond window size to False
                 # Enforcing the length to be the defined window size
                 idx[non_zero_idx[0][0]+win_size:]=False
-            epoch_pupil = self.pupil_size[idx]
-            epoch_movex = self.movement[1][idx]
-            epoch_movey = self.movement[0][idx]
+            epoch = self.pupil_size[idx]
 
             # Do baselining using the mean and standard deviation of the mean and variance
             if pupil_baseline:
@@ -398,9 +399,9 @@ class Data:
                 baseline_period = self.pupil_size[baseline_idx]
                 baseline_mean = np.mean(baseline_period)
                 baseline_std = np.std(baseline_period)
-                epoch_pupil = (epoch_pupil - baseline_mean)/baseline_std
+                epoch = (epoch - baseline_mean)/baseline_std
 
-            t = trial.Trial(self.timestamps[idx], epoch_pupil, epoch_movex, epoch_movey)
+            t = trial.Trial(self.timestamps[idx], epoch)
             all_epochs.append(t)
 
         epochs = session.Epochs(all_epochs, conditions)
