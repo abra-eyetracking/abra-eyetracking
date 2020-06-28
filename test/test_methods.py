@@ -13,14 +13,14 @@ def test_read_output():
 
 
 def test_remove_eye_blinks():
-    processed = data.pupil_size_remove_eye_blinks(default_obj, buffer=10)
+    processed = data.pupil_size_remove_eye_blinks(default_obj, interpolate=True, buffer=10)
     assert np.sum(np.isnan(processed.pupil_size))==0
-    processed = data.pupil_size_remove_eye_blinks(default_obj, buffer=100)
+    processed = data.pupil_size_remove_eye_blinks(default_obj, interpolate=True, buffer=100)
     assert np.sum(np.isnan(processed.pupil_size))==0
 
-    processed = data.pupil_size_remove_eye_blinks(udef_obj, buffer=10)
+    processed = data.pupil_size_remove_eye_blinks(udef_obj, interpolate=True, buffer=10)
     assert np.sum(np.isnan(processed.pupil_size))==0
-    processed = data.pupil_size_remove_eye_blinks(udef_obj, buffer=100)
+    processed = data.pupil_size_remove_eye_blinks(udef_obj, interpolate=True, buffer=100)
     assert np.sum(np.isnan(processed.pupil_size))==0
 
 def test_shuffle():
