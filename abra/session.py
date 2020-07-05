@@ -302,7 +302,21 @@ class Base:
 
         return np.array(x), np.array(y)
 
-    def get_bubble_plot(self, trial_num):
+    def get_bubble_plot(self, trial_num, image_file = None, screen_size = [1920, 1080]):
+        """
+        Will Return A Bubble Plot Of Eye Fixations
+        Image Will Be Centered On The Graph
+
+        trial_num:
+        find which trial you want to plot
+
+        image_file:
+        path to iamge you want to display
+
+        screen_size:
+        screen size of computer of screen used during recording
+        """
+
         data = self.get_fixation()
         # print(len(data))
         x,y = self.get_x_y(np.array(data[trial_num]))
@@ -321,10 +335,10 @@ class Base:
         yi = [yi[0] for yi in y]
         # for x_i,y_i,z_i in zip(xi,yi,z):
         # print(z)
-        ax.set_xlim(0,1920)
-        ax.set_ylim(0,1080)
+        ax.set_xlim(0,screen_size[0])
+        ax.set_ylim(0,screen_size[1])
         ax.scatter(xi, yi, s=z/10, alpha=0.4)
-        img = mpimg.imread('/Users/akimaconnelly/Desktop/Research/Abra_Test_Code/git_hub_code/abra-eyetracking_tester/abra/libet_clock.png')
+        img = mpimg.imread(image_file)
         # print(img.size)
         # new_img = img.resize((int(500), int(500)))
         xsize = int((1920-img.shape[0])/2)

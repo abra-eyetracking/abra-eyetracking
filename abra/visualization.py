@@ -65,7 +65,7 @@ class Visualization(tk.Tk):
 
         #0 = bad and 1 = good
         self.curr_quailty = 0
-        self.pupil_trials = self.data.get_values()
+        self.pupil_trials = self.data.get_pupil()
         self.timestamp_trials = self.data.get_timestamps()
         self.quality_list = np.ones(len(self.pupil_trials)) # change to all 1
 

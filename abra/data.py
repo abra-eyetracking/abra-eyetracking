@@ -14,8 +14,8 @@ def is_number(s):
         return False
 
 
-def read(filename, eyes_recorded = "left", both_eyes_recorded = False, mode="d", start_msg=r"TRIAL \d{1,2} START",
-         end_msg=r"TRIAL \d{1,2} END", autoepoch=False):
+def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d", start_msg=r"TRIAL \d{1,2} START",
+         end_msg=r"TRIAL \d{1,2} END"):
     """
     Read method will read in the ascii file and extract the data
     "file_name" will take in the name of the file you are trying
@@ -29,8 +29,8 @@ def read(filename, eyes_recorded = "left", both_eyes_recorded = False, mode="d",
     "user defined" will take in "start_msg" and "end_msg" to use as the
 
     eyes_recorded: Define which eye data to extract
-    "left", "right"
-    default is "left" eye
+    "left", "right", "auto"
+    default is "auto" which will take whichever eye it finds first
 
     both_eyes_recorded:
     True if both eyes were recorded
@@ -224,6 +224,7 @@ def event_read(events_dict, elements, eyes_recorded, both_eyes_recorded):
     - Checks if event name already exists before appending
     """
     event_name = f"{elements[0]} {elements[1]}"
+    # will extract left or right eye data from recording set set from both eye recordings
     if both_eyes_recorded:
         if(eyes_recorded == "left"):
             if event_name not in events_dict and elements[1] == "L":
@@ -245,6 +246,7 @@ def event_read(events_dict, elements, eyes_recorded, both_eyes_recorded):
             temp_list = list(map(float,temp_list))
             events_dict[event_name].append(temp_list)
 
+    # will extract data from one eye data, 'auto'
     else:
         if event_name not in events_dict:
             events_dict[event_name] = []
@@ -433,7 +435,6 @@ class Data:
                 raise ValueError('Condition length must be equal to the number of trials: ', num_trials)
 
         return session.Session(np.array(trials), conditions)
-
 
     def create_epochs(self, event_timestamps, conditions=None, pre_event=200, post_event=200, pupil_baseline=None):
         """
