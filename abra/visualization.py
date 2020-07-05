@@ -13,6 +13,38 @@ from . import data
 
 #creates initial window for visualization
 class Visualization(tk.Tk):
+    '''
+    Creates a Visualization Object To Identify Good and Bad Trials
+    By Visualizing Pupil Size Across trial_stamp
+
+    Parameter Input:
+    data: Sessions data object
+        > will separate pupil size and timestamps to plot
+
+    Visualization will a GUI that will show the plot of pupil size
+    across trials. Good, Bad, Next and Previous buttons will be shown
+    with the graph.
+
+    Good button: will classify that the trial is good(1)
+
+    Bad button: will classify that the trial is bad(0)
+
+    Next: will move to the next trial
+        - Will warn you when you are at the last trial
+        - Window will open asking if you want to quit or return to
+          the graphs
+
+    Previous button: will move to the previous trial
+        - Will warn you when are on the first trial and you press
+          previous.
+
+    Return:
+
+    trial_quality: a list of all the quality classification for
+                   all trials
+    '''
+
+
 
     def __init__(self, data, *args, **kwargs):
 
@@ -30,6 +62,7 @@ class Visualization(tk.Tk):
         self.pup_size = []
         self.timestmp = []
         self.index = 0
+
         #0 = bad and 1 = good
         self.curr_quailty = 0
         self.pupil_trials = self.data.get_values()
@@ -173,3 +206,19 @@ class Visualization(tk.Tk):
         self.my_text = ttk.Label(self,
                                  text= f"Graph: {self.index +1}     {self.quality_list[self.index]}")
         self.my_text.pack(side = tk.TOP)
+
+def run_app(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
+            end_msg=r"TRIAL \d{1,2} END", autoepoch=False,
+            preprocess = True, buffer=50,
+            interpolate='linear', inplace=False):
+    Data = data.read(filename, mode, start_msg, end_msg, autoepoch)
+    if preprocess:
+        Data = data.remove_eye_blinks(Data, buffer, interpolate, inplace)
+    sess = Data.create_session()
+    app = Visualization(sess)
+    app.mainloop()
+    return app
+
+    '''
+    argparse
+    '''
