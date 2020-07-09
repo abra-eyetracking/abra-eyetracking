@@ -113,9 +113,10 @@ class Base:
     def get_trial(self, trial_num):
         """
         Return Specified Trial
+        > 1 == index 0 for trial list
         """
 
-        trial = self.data[trial_num]
+        trial = self.data[trial_num-1]
         return trial
 
 

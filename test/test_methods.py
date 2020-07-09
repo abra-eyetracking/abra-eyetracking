@@ -13,20 +13,20 @@ def test_read_output():
 
 
 def test_remove_eye_blinks():
-    processed = data.pupil_size_remove_eye_blinks(default_obj, buffer=10)
+    processed = data.remove_eye_blinks(default_obj, buffer=10)
     assert np.sum(np.isnan(processed.pupil_size))==0
-    processed = data.pupil_size_remove_eye_blinks(default_obj, buffer=100)
+    processed = data.remove_eye_blinks(default_obj, buffer=100)
     assert np.sum(np.isnan(processed.pupil_size))==0
 
-    processed = data.pupil_size_remove_eye_blinks(udef_obj, buffer=10)
+    processed = data.remove_eye_blinks(udef_obj, buffer=10)
     assert np.sum(np.isnan(processed.pupil_size))==0
-    processed = data.pupil_size_remove_eye_blinks(udef_obj, buffer=100)
+    processed = data.remove_eye_blinks(udef_obj, buffer=100)
     assert np.sum(np.isnan(processed.pupil_size))==0
 
 def test_shuffle():
     sess = default_obj.create_session()
     sess_u = udef_obj.create_session()
-    cleaned_default = data.pupil_size_remove_eye_blinks(default_obj, buffer=50)
+    cleaned_default = data.remove_eye_blinks(default_obj, buffer=50)
     event_timestamps = np.array(cleaned_default.trial_markers['start']) + 1000  # Buffer for baslining
     test_epochs = cleaned_default.create_epochs(event_timestamps,
                                                 conditions=None,
@@ -39,7 +39,7 @@ def test_shuffle():
     for i in rand_shuf.data:
         assert i in test_epochs.data
 
-    cleaned_udef = data.pupil_size_remove_eye_blinks(udef_obj, buffer=50)
+    cleaned_udef = data.remove_eye_blinks(udef_obj, buffer=50)
     event_timestamps = np.array(cleaned_udef.trial_markers['start']) + 1000  # Buffer for baslining
     test_epochs_udef = cleaned_udef.create_epochs(event_timestamps,
                                                 conditions=None,

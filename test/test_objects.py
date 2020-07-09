@@ -60,6 +60,15 @@ def test_session_object():
     assert isinstance(sum['min'], float)
     assert isinstance(sum['max'], float)
 
+    pup = sess.get_pupil()
+    assert pup.shape[0] == 40
+
+    trl = sess.get_trial(1)
+    assert pup[0] in trl.pupil_size
+
+    move = sess.get_movement()
+    assert move.shape[1] == 40
+
     index = [0,1,5,7,8,4,20,15,14,22,30]
     selected = sess.select(index)
     assert isinstance(selected, session.Session)
