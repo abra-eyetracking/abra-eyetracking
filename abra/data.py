@@ -267,7 +267,7 @@ def event_read(events_dict, elements, eyes_recorded, both_eyes_recorded):
 
 
 
-def pupil_size_remove_eye_blinks(abra_obj, buffer=50, interpolate='linear', inplace=False):
+def remove_eye_blinks(abra_obj, buffer=50, interpolate='linear', inplace=False):
     """
     The remove_eye_blinks method replaces the eyeblinks (NAS) with
     interpolated data, with a buffer of 50 data points and linear spline
@@ -302,11 +302,11 @@ def pupil_size_remove_eye_blinks(abra_obj, buffer=50, interpolate='linear', inpl
 
         if inplace == True:
             abra_obj.pupil_size = interp_pupil_size
-            abra_obj.pupil_size = interp_move
+            # abra_obj.pupil_size = interp_move
         elif inplace == False:
             tmp_obj = copy.deepcopy(abra_obj)
             tmp_obj.pupil_size = interp_pupil_size
-            tmp_obj.movement = movements_
+            # tmp_obj.movement = movements_
             return tmp_obj
     else:
         print("We haven't implement anyother interpolation methods yet")

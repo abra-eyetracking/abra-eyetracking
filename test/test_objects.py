@@ -86,7 +86,7 @@ def test_session_object():
     assert len(selected.data) == len(index)
 
 def test_epochs_object():
-    cleaned_default = data.pupil_size_remove_eye_blinks(default_obj, buffer=50)
+    cleaned_default = data.remove_eye_blinks(default_obj, buffer=50)
     event_timestamps = np.array(cleaned_default.trial_markers['start']) + 1000  # Buffer for baslining
     test_epochs = cleaned_default.create_epochs(event_timestamps,
                                                 conditions=None,
@@ -109,7 +109,7 @@ def test_epochs_object():
     assert isinstance(selected, session.Epochs)
     assert len(selected.data) == len(index)
 
-    cleaned_udef = data.pupil_size_remove_eye_blinks(udef_obj, buffer=50)
+    cleaned_udef = data.remove_eye_blinks(udef_obj, buffer=50)
     event_timestamps = np.array(cleaned_udef.trial_markers['start']) + 1000  # Buffer for baslining
     test_epochs = cleaned_udef.create_epochs(event_timestamps,
                                                 conditions=None,

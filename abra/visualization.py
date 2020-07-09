@@ -66,6 +66,7 @@ class Visualization(tk.Tk):
         #0 = bad and 1 = good
         self.curr_quailty = 0
         self.pupil_trials = self.data.get_pupil()
+        self.movement_trials = self.data.get_movement()
         self.timestamp_trials = self.data.get_timestamps()
         self.quality_list = np.ones(len(self.pupil_trials)) # change to all 1
 
@@ -98,12 +99,21 @@ class Visualization(tk.Tk):
         self.my_text.pack(side = tk.TOP)
 
         self.f = Figure(figsize=(5,5), dpi=100)
-        self.a = self.f.add_subplot(111)
+        self.a = self.f.add_subplot(211)
         self.a.plot(self.timestamp_trials[self.index],
                     self.pupil_trials[self.index])
         self.a.set_title('Pupil Size Trial {}'.format(str(self.index+1)))
         self.a.set_xlabel('Time (ms)')
         self.a.set_ylabel('Pupil Size')
+
+        self.a = self.f.add_subplot(212)
+        self.a.plot(range(len(self.movement_trials[0][self.index])), self.movement_trials[0][self.index], label = 'x-axis movement')
+        self.a.plot(range(len(self.movement_trials[1][self.index])), self.movement_trials[1][self.index], label = 'y-axis movement')
+        self.a.legend(loc='upper center', bbox_to_anchor=(0.5, 1.3), fontsize = 'small', ncol = 2)
+        self.a.set_title('X and Y Axis Movement Trial {}'.format(str(self.index+1)), pad = 30)
+        self.a.set_xlabel('Time (ms)')
+        self.a.set_ylabel('Axis')
+        self.f.tight_layout(pad = 3)
 
         self.canvas = FigureCanvasTkAgg(self.f, self)
         self.canvas.draw()
@@ -133,12 +143,21 @@ class Visualization(tk.Tk):
             self.index -= 1
             pass
         self.f = Figure(figsize=(5,5), dpi=100)
-        self.a = self.f.add_subplot(111)
+        self.a = self.f.add_subplot(211)
         self.a.plot(self.timestamp_trials[self.index],
                     self.pupil_trials[self.index])
         self.a.set_title('Pupil Size Trial {}'.format(str(self.index+1)))
         self.a.set_xlabel('Time (ms)')
         self.a.set_ylabel('Pupil Size')
+
+        self.a = self.f.add_subplot(212)
+        self.a.plot(range(len(self.movement_trials[0][self.index])), self.movement_trials[0][self.index], label = 'x-axis movement')
+        self.a.plot(range(len(self.movement_trials[1][self.index])), self.movement_trials[1][self.index], label = 'y-axis movement')
+        self.a.legend(loc='upper center', bbox_to_anchor=(0.5, 1.3), fontsize = 'small', ncol = 2)
+        self.a.set_title('X and Y Axis Movement Trial {}'.format(str(self.index+1)), pad = 30)
+        self.a.set_xlabel('Time (ms)')
+        self.a.set_ylabel('Axis')
+        self.f.tight_layout(pad = 3)
 
         self.canvas = FigureCanvasTkAgg(self.f, self)
         self.canvas.draw()
@@ -167,12 +186,21 @@ class Visualization(tk.Tk):
             self.index = 0
             pass
         self.f = Figure(figsize=(5,5), dpi=100)
-        self.a = self.f.add_subplot(111)
+        self.a = self.f.add_subplot(211)
         self.a.plot(self.timestamp_trials[self.index],
                     self.pupil_trials[self.index])
         self.a.set_title('Pupil Size Trial {}'.format(str(self.index+1)))
         self.a.set_xlabel('Time (ms)')
         self.a.set_ylabel('Pupil Size')
+
+        self.a = self.f.add_subplot(212)
+        self.a.plot(range(len(self.movement_trials[0][self.index])), self.movement_trials[0][self.index], label = 'x-axis movement')
+        self.a.plot(range(len(self.movement_trials[1][self.index])), self.movement_trials[1][self.index], label = 'y-axis movement')
+        self.a.legend(loc='upper center', bbox_to_anchor=(0.5, 1.3), fontsize = 'small', ncol = 2)
+        self.a.set_title('X and Y Axis Movement Trial {}'.format(str(self.index+1)), pad = 30)
+        self.a.set_xlabel('Time (ms)')
+        self.a.set_ylabel('Axis')
+        self.f.tight_layout(pad = 3)
 
         self.canvas = FigureCanvasTkAgg(self.f, self)
         self.canvas.draw()
@@ -212,8 +240,9 @@ def run_app(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
             preprocess = True, buffer=50,
             interpolate='linear', inplace=False):
     Data = data.read(filename, mode, start_msg, end_msg, autoepoch)
-    if preprocess:
-        Data = data.remove_eye_blinks(Data, buffer, interpolate, inplace)
+    # if preprocess:
+        # Data = data.pupil_size_remove_eye_blinks(Data, buffer, interpolate, inplace)
+
     sess = Data.create_session()
     app = Visualization(sess)
     app.mainloop()
