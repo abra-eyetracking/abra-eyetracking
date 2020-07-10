@@ -6,7 +6,9 @@ import numpy as np
 
 
 default_obj = data.read("test/asc/1211NE1.asc")
-udef_obj = data.read("test/asc/22205.asc", mode = 'u')
+udef_obj = data.read("test/asc/22205.asc", mode = 'u', both_eyes_recorded = False, eyes_recorded = "auto")
+both_eyes_objR = data.read("88001.asc", mode = 'd', both_eyes_recorded = True, eyes_recorded = 'right')
+both_eyes_objL = data.read("88001.asc", mode = 'd', both_eyes_recorded = True, eyes_recorded = 'left')
 
 
 def test_trial_object():
@@ -29,6 +31,38 @@ def test_trial_object():
 
     # Test for user define case:
     sess = udef_obj.create_session()
+    for t in sess.data:
+        assert isinstance(t, trial.Trial)
+        assert t.timestamps.ndim == 1
+        assert t.pupil_size.ndim == 1
+        assert isinstance(t.timestamps, np.ndarray)
+        assert isinstance(t.pupil_size, np.ndarray)
+
+        sum = t.summary()
+        assert isinstance(sum['mean'], float)
+        assert isinstance(sum['variance'], float)
+        assert isinstance(sum['stdev'], float)
+        assert isinstance(sum['length'], int)
+        assert isinstance(sum['min'], float)
+        assert isinstance(sum['max'], float)
+
+    sess = both_eyes_objL_obj.create_session()
+    for t in sess.data:
+        assert isinstance(t, trial.Trial)
+        assert t.timestamps.ndim == 1
+        assert t.pupil_size.ndim == 1
+        assert isinstance(t.timestamps, np.ndarray)
+        assert isinstance(t.pupil_size, np.ndarray)
+
+        sum = t.summary()
+        assert isinstance(sum['mean'], float)
+        assert isinstance(sum['variance'], float)
+        assert isinstance(sum['stdev'], float)
+        assert isinstance(sum['length'], int)
+        assert isinstance(sum['min'], float)
+        assert isinstance(sum['max'], float)
+
+    sess = both_eyes_objR.create_session()
     for t in sess.data:
         assert isinstance(t, trial.Trial)
         assert t.timestamps.ndim == 1
@@ -94,6 +128,64 @@ def test_session_object():
     assert isinstance(selected, session.Session)
     assert len(selected.data) == len(index)
 
+    sess = both_eyes_objL_obj.create_session()
+    assert isinstance(sess, session.Session)
+    #assert isinstance(sess.data, list)
+    assert isinstance(sess.data[0], trial.Trial)
+    assert isinstance(sess.conditions, np.ndarray)
+    assert len(sess.data) == len(sess.conditions)
+
+    sum = sess.summary()
+    assert isinstance(sum['mean'], float)
+    assert isinstance(sum['variance'], float)
+    assert isinstance(sum['stdev'], float)
+    assert isinstance(sum['length'], int)
+    assert isinstance(sum['min'], float)
+    assert isinstance(sum['max'], float)
+
+    pup = sess.get_pupil()
+    assert pup.shape[0] == 40
+
+    trl = sess.get_trial(1)
+    assert pup[0] in trl.pupil_size
+
+    move = sess.get_movement()
+    assert move.shape[1] == 40
+
+    index = [0,1,5,7,8,4,20,15,14,22,30]
+    selected = sess.select(index)
+    assert isinstance(selected, session.Session)
+    assert len(selected.data) == len(index)
+
+    sess = both_eyes_objR.create_session()
+    assert isinstance(sess, session.Session)
+    #assert isinstance(sess.data, list)
+    assert isinstance(sess.data[0], trial.Trial)
+    assert isinstance(sess.conditions, np.ndarray)
+    assert len(sess.data) == len(sess.conditions)
+
+    sum = sess.summary()
+    assert isinstance(sum['mean'], float)
+    assert isinstance(sum['variance'], float)
+    assert isinstance(sum['stdev'], float)
+    assert isinstance(sum['length'], int)
+    assert isinstance(sum['min'], float)
+    assert isinstance(sum['max'], float)
+
+    pup = sess.get_pupil()
+    assert pup.shape[0] == 40
+
+    trl = sess.get_trial(1)
+    assert pup[0] in trl.pupil_size
+
+    move = sess.get_movement()
+    assert move.shape[1] == 40
+
+    index = [0,1,5,7,8,4,20,15,14,22,30]
+    selected = sess.select(index)
+    assert isinstance(selected, session.Session)
+    assert len(selected.data) == len(index)
+
 def test_epochs_object():
     cleaned_default = data.remove_eye_blinks(default_obj, buffer=50)
     event_timestamps = np.array(cleaned_default.trial_markers['start']) + 1000  # Buffer for baslining
@@ -141,6 +233,52 @@ def test_epochs_object():
     assert isinstance(selected, session.Epochs)
     assert len(selected.data) == len(index)
 
+    cleaned_default = data.remove_eye_blinks(both_eyes_objL, buffer=50)
+    event_timestamps = np.array(cleaned_default.trial_markers['start']) + 1000  # Buffer for baslining
+    test_epochs = cleaned_default.create_epochs(event_timestamps,
+                                                conditions=None,
+                                                pre_event=200,
+                                                post_event=200,
+                                                pupil_baseline=[-200,-100])
+    sum = test_epochs.summary()
+    assert isinstance(sum['mean'], float)
+    assert isinstance(sum['variance'], float)
+    assert isinstance(sum['stdev'], float)
+    assert isinstance(sum['length'], int)
+    assert isinstance(sum['min'], float)
+    assert isinstance(sum['max'], float)
+
+    assert test_epochs.get_pupil().shape[1] == 200
+
+    index = [0,1,5,7,8,4,20,15,14,22,30]
+    selected = test_epochs.select(index)
+
+    assert isinstance(selected, session.Epochs)
+    assert len(selected.data) == len(index)
+
+    cleaned_default = data.remove_eye_blinks(both_eyes_objR, buffer=50)
+    event_timestamps = np.array(cleaned_default.trial_markers['start']) + 1000  # Buffer for baslining
+    test_epochs = cleaned_default.create_epochs(event_timestamps,
+                                                conditions=None,
+                                                pre_event=200,
+                                                post_event=200,
+                                                pupil_baseline=[-200,-100])
+    sum = test_epochs.summary()
+    assert isinstance(sum['mean'], float)
+    assert isinstance(sum['variance'], float)
+    assert isinstance(sum['stdev'], float)
+    assert isinstance(sum['length'], int)
+    assert isinstance(sum['min'], float)
+    assert isinstance(sum['max'], float)
+
+    assert test_epochs.get_pupil().shape[1] == 200
+
+    index = [0,1,5,7,8,4,20,15,14,22,30]
+    selected = test_epochs.select(index)
+
+    assert isinstance(selected, session.Epochs)
+    assert len(selected.data) == len(index)
+
 def test_data_object():
     #Test for missing values in messages, event, and trial markers
     assert None not in udef_obj.timestamps
@@ -165,6 +303,28 @@ def test_data_object():
     for te in default_obj.trial_markers["end"]:
         assert te is not None
 
+    assert None not in both_eyes_objL.timestamps
+    assert None not in both_eyes_objL.pupil_size
+    for mes in both_eyes_objL.messages:
+        assert len(both_eyes_objL.messages[mes]) > 0
+    for evnt in both_eyes_objL.events:
+        assert len(both_eyes_objL.events[evnt]) > 0
+    for ts in both_eyes_objL.trial_markers["start"]:
+        assert ts is not None
+    for te in both_eyes_objL.trial_markers["end"]:
+        assert te is not None
+
+    assert None not in both_eyes_objR.timestamps
+    assert None not in both_eyes_objR.pupil_size
+    for mes in both_eyes_objR.messages:
+        assert len(both_eyes_objR.messages[mes]) > 0
+    for evnt in both_eyes_objR.events:
+        assert len(both_eyes_objR.events[evnt]) > 0
+    for ts in both_eyes_objR.trial_markers["start"]:
+        assert ts is not None
+    for te in both_eyes_objR.trial_markers["end"]:
+        assert te is not None
+
     #Test to make sure variables have the same length
     assert default_obj.timestamps.size == default_obj.pupil_size.size
     assert default_obj.timestamps.size == default_obj.movement[0].size
@@ -176,6 +336,19 @@ def test_data_object():
     assert udef_obj.timestamps.size == udef_obj.movement[0].size
     assert udef_obj.timestamps.size == udef_obj.movement[1].size
     assert udef_obj.movement[0].size == udef_obj.movement[1].size
+
+
+    assert both_eyes_objL.timestamps.size == both_eyes_objL.pupil_size.size
+    assert both_eyes_objL.timestamps.size == both_eyes_objL.movement[0].size
+    assert both_eyes_objL.timestamps.size == both_eyes_objL.movement[1].size
+    assert both_eyes_objL.movement[0].size == both_eyes_objL.movement[1].size
+
+    assert both_eyes_objR.timestamps.size == both_eyes_objR.pupil_size.size
+    assert both_eyes_objR.timestamps.size == both_eyes_objR.movement[0].size
+    assert both_eyes_objR.timestamps.size == both_eyes_objR.movement[1].size
+    assert both_eyes_objR.movement[0].size == both_eyes_objR.movement[1].size
+
+
 
     #Test dimensions
     assert default_obj.timestamps.ndim == 1

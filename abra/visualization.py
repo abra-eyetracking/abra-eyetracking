@@ -4,10 +4,13 @@ matplotlib.use("TkAgg")
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 import numpy as np
+import time
 
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from tkinter import filedialog as fd
+
 from . import data
 
 
@@ -46,7 +49,7 @@ class Visualization(tk.Tk):
 
 
 
-    def __init__(self, data, *args, **kwargs):
+    def __init__(self, data, quality_list, *args, **kwargs):
 
         tk.Tk.__init__(self, *args, **kwargs)
         container = tk.Frame(self)
@@ -68,11 +71,20 @@ class Visualization(tk.Tk):
         self.pupil_trials = self.data.get_pupil()
         self.movement_trials = self.data.get_movement()
         self.timestamp_trials = self.data.get_timestamps()
-        self.quality_list = np.ones(len(self.pupil_trials)) # change to all 1
+        if quality_list:
+            file = fd.askopenfilename()
+            self.quality_list = np.loadtxt(file)
+        else:
+            self.quality_list = np.ones(len(self.pupil_trials)) # change to all 1
 
         #initalize timestamps in milliseconds(0-end)
-        for t in range(len(self.timestamp_trials)):
-            self.timestamp_trials[t] -= self.timestamp_trials[t][0]
+        self.tick = (1000/self.data.sample_rate)
+        print(self.pupil_trials.shape)
+        for t in range(len(self.pupil_trials)):
+            # print(t.shape)
+            for ind in range(len(self.pupil_trials[t])):
+                self.timestamp_trials[t][ind] = self.tick * ind
+            # self.timestamp_trials[t] -= self.timestamp_trials[t][0]
 
         good_button = ttk.Button(self,
                             text="Good",
@@ -94,6 +106,12 @@ class Visualization(tk.Tk):
                             command=lambda: self.previous_graph())
         previous_button.pack(side = tk.TOP)
 
+        save_button = ttk.Button(self,
+                                text = "Save",
+                                command = lambda: self.save())
+        save_button.pack(side = tk.TOP)
+
+
         self.my_text = ttk.Label(self,
          text= f"Graph: {self.index +1}     Quality: {self.quality_list[self.index]}")
         self.my_text.pack(side = tk.TOP)
@@ -107,8 +125,8 @@ class Visualization(tk.Tk):
         self.a.set_ylabel('Pupil Size')
 
         self.a = self.f.add_subplot(212)
-        self.a.plot(range(len(self.movement_trials[0][self.index])), self.movement_trials[0][self.index], label = 'x-axis movement')
-        self.a.plot(range(len(self.movement_trials[1][self.index])), self.movement_trials[1][self.index], label = 'y-axis movement')
+        self.a.plot(self.timestamp_trials[self.index], self.movement_trials[0][self.index], label = 'x-axis movement')
+        self.a.plot(self.timestamp_trials[self.index], self.movement_trials[1][self.index], label = 'y-axis movement')
         self.a.legend(loc='upper center', bbox_to_anchor=(0.5, 1.3), fontsize = 'small', ncol = 2)
         self.a.set_title('X and Y Axis Movement Trial {}'.format(str(self.index+1)), pad = 30)
         self.a.set_xlabel('Time (ms)')
@@ -131,48 +149,56 @@ class Visualization(tk.Tk):
     #gets next graph by getting adding 1 to the current position (index)
     def next_graph(self):
         # get pupil size data from index
+
         self.a.clear()
         self.canvas.get_tk_widget().destroy()
-        self.index += 1
 
-        if(self.index >= len(self.pupil_trials)):
-            messagebox.askquestion('Finished',
-                        'This is the last graph\nDo you want to exit?')
+
+        if(self.index >= len(self.pupil_trials)-1):
+            finished = messagebox.askquestion('Finished',
+                        'This is the last graph\nDo you want to save and exit?')
+
             if finished == 'yes':
-                    self.quit()
+                file = fd.asksaveasfile(mode = 'w', defaultextension = '.txt')
+                np.savetxt(file, self.quality_list)
+                self.quit()
+
             self.index -= 1
-            pass
-        self.f = Figure(figsize=(5,5), dpi=100)
-        self.a = self.f.add_subplot(211)
-        self.a.plot(self.timestamp_trials[self.index],
-                    self.pupil_trials[self.index])
-        self.a.set_title('Pupil Size Trial {}'.format(str(self.index+1)))
-        self.a.set_xlabel('Time (ms)')
-        self.a.set_ylabel('Pupil Size')
+            self.next_graph()
 
-        self.a = self.f.add_subplot(212)
-        self.a.plot(range(len(self.movement_trials[0][self.index])), self.movement_trials[0][self.index], label = 'x-axis movement')
-        self.a.plot(range(len(self.movement_trials[1][self.index])), self.movement_trials[1][self.index], label = 'y-axis movement')
-        self.a.legend(loc='upper center', bbox_to_anchor=(0.5, 1.3), fontsize = 'small', ncol = 2)
-        self.a.set_title('X and Y Axis Movement Trial {}'.format(str(self.index+1)), pad = 30)
-        self.a.set_xlabel('Time (ms)')
-        self.a.set_ylabel('Axis')
-        self.f.tight_layout(pad = 3)
+        else:
+            self.index += 1
+            self.f = Figure(figsize=(5,5), dpi=100)
+            self.a = self.f.add_subplot(211)
+            self.a.plot(self.timestamp_trials[self.index],
+                        self.pupil_trials[self.index])
+            self.a.set_title('Pupil Size Trial {}'.format(str(self.index+1)))
+            self.a.set_xlabel('Time (ms)')
+            self.a.set_ylabel('Pupil Size')
 
-        self.canvas = FigureCanvasTkAgg(self.f, self)
-        self.canvas.draw()
-        self.canvas.get_tk_widget().pack(side=tk.BOTTOM,
-                                         fill=tk.BOTH,
-                                         expand=True)
+            self.a = self.f.add_subplot(212)
+            self.a.plot(self.timestamp_trials[self.index], self.movement_trials[0][self.index], label = 'x-axis movement')
+            self.a.plot(self.timestamp_trials[self.index], self.movement_trials[1][self.index], label = 'y-axis movement')
+            self.a.legend(loc='upper center', bbox_to_anchor=(0.5, 1.3), fontsize = 'small', ncol = 2)
+            self.a.set_title('X and Y Axis Movement Trial {}'.format(str(self.index+1)), pad = 30)
+            self.a.set_xlabel('Time (ms)')
+            self.a.set_ylabel('Axis')
+            self.f.tight_layout(pad = 3)
 
-        self.toolbar.update()
-        self.canvas._tkcanvas.pack(side=tk.BOTTOM,
-                                   fill=tk.BOTH,
-                                   expand=True)
-        self.my_text.pack_forget()
-        self.my_text = ttk.Label(self,
-                                text= f"Graph: {self.index +1}     {self.quality_list[self.index]}")
-        self.my_text.pack(side = tk.TOP)
+            self.canvas = FigureCanvasTkAgg(self.f, self)
+            self.canvas.draw()
+            self.canvas.get_tk_widget().pack(side=tk.BOTTOM,
+                                             fill=tk.BOTH,
+                                             expand=True)
+
+            self.toolbar.update()
+            self.canvas._tkcanvas.pack(side=tk.BOTTOM,
+                                       fill=tk.BOTH,
+                                       expand=True)
+            self.my_text.pack_forget()
+            self.my_text = ttk.Label(self,
+                                    text= f"Graph: {self.index +1}     {self.quality_list[self.index]}")
+            self.my_text.pack(side = tk.TOP)
 
     #gets previous graph by subtracting 1 to the current position (index)
     def previous_graph(self):
@@ -194,8 +220,8 @@ class Visualization(tk.Tk):
         self.a.set_ylabel('Pupil Size')
 
         self.a = self.f.add_subplot(212)
-        self.a.plot(range(len(self.movement_trials[0][self.index])), self.movement_trials[0][self.index], label = 'x-axis movement')
-        self.a.plot(range(len(self.movement_trials[1][self.index])), self.movement_trials[1][self.index], label = 'y-axis movement')
+        self.a.plot(self.timestamp_trials[self.index], self.movement_trials[0][self.index], label = 'x-axis movement')
+        self.a.plot(self.timestamp_trials[self.index], self.movement_trials[1][self.index], label = 'y-axis movement')
         self.a.legend(loc='upper center', bbox_to_anchor=(0.5, 1.3), fontsize = 'small', ncol = 2)
         self.a.set_title('X and Y Axis Movement Trial {}'.format(str(self.index+1)), pad = 30)
         self.a.set_xlabel('Time (ms)')
@@ -234,6 +260,16 @@ class Visualization(tk.Tk):
         self.my_text = ttk.Label(self,
                                  text= f"Graph: {self.index +1}     {self.quality_list[self.index]}")
         self.my_text.pack(side = tk.TOP)
+
+    def save(self):
+        save_txt = messagebox.askquestion('save',
+                                          'Do you want to save and exit?')
+        if save_txt == 'yes':
+            file = fd.asksaveasfile(mode = 'w', defaultextension = '.txt')
+            np.savetxt(file, self.quality_list)
+            file.close()
+            # time.sleep(1)
+            self.quit()
 
 def run_app(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
             end_msg=r"TRIAL \d{1,2} END", autoepoch=False,

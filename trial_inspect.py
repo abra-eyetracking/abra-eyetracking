@@ -86,6 +86,8 @@ parser.add_argument('--post_event',
                     help='milliseconds after defined starting timestamps')
 parser.add_argument('--pupil_baseline',
                     help='Baselining for pupil size data')
+parser.add_argument('--quality_list',
+                    help='True if you want to import a previous quality list file; False is no file exists')
 
 
 
@@ -157,6 +159,10 @@ if args.pupil_baseline:
     pupil_baseline = args.pupil_baseline
 else:
     pupil_baseline=None
+if args.quality_list:
+    quality_list = args.quality_list
+else:
+    quality_list = False
 # print(args)
 
 
@@ -164,7 +170,8 @@ def run_app(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="
             end_msg=r"TRIAL \d{1,2} END", create_epoch = False,
             rm_blinks = True, buffer=50,
             interpolate='linear',
-            event_condition_file = None, pre_event=200, post_event=200, pupil_baseline=None):
+            event_condition_file = None, pre_event=200, post_event=200, pupil_baseline=None,
+            quality_list = False):
 
     print("reading in data from ", filename)
     Data = data.read(filename, eyes_recorded = eyes_recorded, both_eyes_recorded = both_eyes_recorded,
@@ -178,7 +185,7 @@ def run_app(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="
     sess = Data.create_session()
 
     print("creating GUI")
-    app = vis.Visualization(sess)
+    app = vis.Visualization(sess, quality_list = quality_list)
     app.mainloop()
 
     return app
@@ -189,4 +196,5 @@ if __name__ == "__main__":
                 rm_blinks = rm_blinks, buffer = buffer,
                 interpolate = interpolate,
                 event_condition_file = event_condition_file , pre_event = pre_event,
-                post_event = post_event, pupil_baseline = pupil_baseline)
+                post_event = post_event, pupil_baseline = pupil_baseline,
+                quality_list = quality_list)

@@ -28,13 +28,14 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
     "default" will use the default start and end times given in the file
     "user defined" will take in "start_msg" and "end_msg" to use as the
 
-    eyes_recorded: Define which eye data to extract
+    eyes_recorded: Define which eye data to extract if both eyes are
+                   being recorded
     "left", "right", "auto"
     default is "auto" which will take whichever eye it finds first
 
     both_eyes_recorded:
-    True if both eyes were recorded
-    False is only the left or right eyes was being recorded
+    True: if both eyes were recorded
+    False: is only the left or right eyes was being recorded
 
     start and end marker
     "start_msg" will use regular expression to identify the user inputed
@@ -85,6 +86,8 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
                 if start_time:
                     if line.startswith(start_time):
                         flag = True
+                if "RATE" in elements:
+                    sample_rate = get_sample_rate(elements, both_eyes_recorded)
 
                 # check for start
                 if flag is True:
@@ -122,6 +125,9 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
                     flag = False
                     continue
 
+                if "RATE" in elements:
+                    sample_rate = get_sample_rate(elements, both_eyes_recorded)
+
                 # check for start marker
                 if flag is True:
                     # will get pupil size, timestamps, and movements
@@ -139,7 +145,7 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
     timestamps = np.array(timestamps_list)
     pupil_size = np.array(pupil_size_list)
     movement = np.array(movement_list)
-    return Data(timestamps, pupil_size, movement, 500, {}, messages_dict,
+    return Data(timestamps, pupil_size, movement, sample_rate, {}, messages_dict,
                 events_dict, trial_markers)
 
 
@@ -170,6 +176,12 @@ def find_end(elements, end_time, trial_markers, messages_dict, flag, start_time)
     start_time = ""
     return end_time, trial_markers, messages_dict, flag, start_time
 
+
+def get_sample_rate(elements, both):
+    if both:
+        return float(elements[5])
+    else:
+        return float(elements[4])
 
 
 def tpm_read(timestamps_list, pupil_size_list, movement_list,
@@ -277,28 +289,22 @@ def remove_eye_blinks(abra_obj, buffer=50, interpolate='linear', inplace=False):
     ##keep NAs for the movemnt
     #Buffer
     pupilsize_ = np.copy(abra_obj.pupil_size)
-    movements_ = np.copy(abra_obj.pupil_size)
+    movements_ = np.copy(abra_obj.movement)
     blink_times = np.isnan(pupilsize_)
-    move_blink_times = np.isnan(movements_)
 
     for j in range(len(blink_times)):
         if blink_times[j]==True:
             pupilsize_[j-buffer:j+buffer]=np.nan
-
-    # for j in range(len(move_blink_times)):
-    #     if move_blink_times[0][j]==True:
-    #         movements_[0][j-buffer:j+buffer]=np.nan
-    # for j in range(len(move_blink_times)):
-    #     if move_blink_times[1][j]==True:
-    #         movements_[1][j-buffer:j+buffer]=np.nan
-    # abra_obj.movement = movements_
+            movements_[0][j-buffer:j+buffer]=np.nan
+            movements_[1][j-buffer:j+buffer]=np.nan
+    abra_obj.movement = movements_
 
     # Interpolate
     interp_move = [[],[]]
     if interpolate=='linear':
         interp_pupil_size = utils.linear_interpolate(pupilsize_)
-        interp_move = utils.linear_interpolate(movements_)
-        interp_move = utils.linear_interpolate(movements_)
+        # interp_move = utils.linear_interpolate(movements_)
+        # interp_move = utils.linear_interpolate(movements_)
 
         if inplace == True:
             abra_obj.pupil_size = interp_pupil_size
@@ -434,7 +440,7 @@ class Data:
             if (len(conditions) != num_trials):
                 raise ValueError('Condition length must be equal to the number of trials: ', num_trials)
 
-        return session.Session(np.array(trials), conditions)
+        return session.Session(np.array(trials), self.sample_rate, conditions)
 
     def create_epochs(self, event_timestamps, conditions=None, pre_event=200, post_event=200, pupil_baseline=None):
         """
@@ -480,5 +486,5 @@ class Data:
             t = trial.Trial(self.timestamps[idx], epoch_pupil, epoch_movex, epoch_movey)
             all_epochs.append(t)
 
-        epochs = session.Epochs(all_epochs, conditions)
+        epochs = session.Epochs(all_epochs, self.sample_rate, conditions)
         return epochs

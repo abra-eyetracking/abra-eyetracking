@@ -56,8 +56,9 @@ class Base:
     """
     Base Class for Session and Epoch
     """
-    def __init__(self, data, conditions=None):
+    def __init__(self, data, sample_rate, conditions=None):
         self.data = data
+        self.sample_rate = sample_rate
         if conditions is not None:
             self.conditions = conditions
         else:
@@ -359,8 +360,8 @@ class Session(Base):
         > Reserved for later development for trials
     """
 
-    def __init__(self, trials, conditions=None):
-        Base.__init__(self, trials, conditions)
+    def __init__(self, trials, sample_rate, conditions=None):
+        Base.__init__(self, trials, sample_rate, conditions)
 
 
 
@@ -370,5 +371,5 @@ class Epochs(Base):
         > Reserved for later development for Epochs
     """
 
-    def __init__(self, epochs, conditions=None):
-        Base.__init__(self, epochs, conditions)
+    def __init__(self, epochs, sample_rate, conditions=None):
+        Base.__init__(self, epochs, sample_rate, conditions)
