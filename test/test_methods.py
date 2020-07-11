@@ -117,10 +117,10 @@ def test_shuffle():
     rand_sess= session.shuffle(sess_l)
     assert isinstance(rand_sess, session.Session)
     for i in rand_sess.data:
-        assert i in sess_u.data
+        assert i in sess_l.data
 
 
     rand_sess= session.shuffle(sess_r)
     assert isinstance(rand_sess, session.Session)
     for i in rand_sess.data:
-        assert i in sess_u.data
+        assert i in sess_r.data
