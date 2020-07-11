@@ -6,10 +6,15 @@ import numpy as np
 
 default_obj = data.read('test/asc/1211NE1.asc')
 udef_obj = data.read('test/asc/22205.asc', mode = 'u')
+both_eyes_objR = data.read("test/asc/88001.asc", mode = 'd', both_eyes_recorded = True, eyes_recorded = 'right')
+both_eyes_objL = data.read("test/asc/88001.asc", mode = 'd', both_eyes_recorded = True, eyes_recorded = 'left')
 
 def test_read_output():
     assert isinstance(default_obj, data.Data)
     assert isinstance(udef_obj, data.Data)
+    assert isinstance(both_eyes_objL, data.Data)
+    assert isinstance(both_eyes_objR, data.Data)
+
 
 
 def test_remove_eye_blinks():
@@ -23,9 +28,26 @@ def test_remove_eye_blinks():
     processed = data.remove_eye_blinks(udef_obj, buffer=100)
     assert np.sum(np.isnan(processed.pupil_size))==0
 
+
+    processed = data.remove_eye_blinks(both_eyes_objL, buffer=10)
+    assert np.sum(np.isnan(processed.pupil_size))==0
+    processed = data.remove_eye_blinks(both_eyes_objL, buffer=100)
+    assert np.sum(np.isnan(processed.pupil_size))==0
+
+
+    processed = data.remove_eye_blinks(both_eyes_objR, buffer=10)
+    assert np.sum(np.isnan(processed.pupil_size))==0
+    processed = data.remove_eye_blinks(both_eyes_objR, buffer=100)
+    assert np.sum(np.isnan(processed.pupil_size))==0
+
+
+
 def test_shuffle():
     sess = default_obj.create_session()
     sess_u = udef_obj.create_session()
+    sess_l = both_eyes_objL.create_session()
+    sess_r = both_eyes_objR.create_session()
+
     cleaned_default = data.remove_eye_blinks(default_obj, buffer=50)
     event_timestamps = np.array(cleaned_default.trial_markers['start']) + 1000  # Buffer for baslining
     test_epochs = cleaned_default.create_epochs(event_timestamps,
@@ -51,6 +73,35 @@ def test_shuffle():
     for i in rand_shuf.data:
         assert i in test_epochs_udef.data
 
+
+    cleaned_default = data.remove_eye_blinks(both_eyes_objL, buffer=50)
+    event_timestamps = np.array(cleaned_default.trial_markers['start']) + 1000  # Buffer for baslining
+    test_epochs = cleaned_default.create_epochs(event_timestamps,
+                                                conditions=None,
+                                                pre_event=200,
+                                                post_event=200,
+                                                pupil_baseline=[-200,-100])
+    rand_shuf = session.shuffle(test_epochs)
+
+    assert isinstance(rand_shuf, session.Epochs)
+    for i in rand_shuf.data:
+        assert i in test_epochs.data
+
+
+    cleaned_default = data.remove_eye_blinks(both_eyes_objR, buffer=50)
+    event_timestamps = np.array(cleaned_default.trial_markers['start']) + 1000  # Buffer for baslining
+    test_epochs = cleaned_default.create_epochs(event_timestamps,
+                                                conditions=None,
+                                                pre_event=200,
+                                                post_event=200,
+                                                pupil_baseline=[-200,-100])
+    rand_shuf = session.shuffle(test_epochs)
+
+    assert isinstance(rand_shuf, session.Epochs)
+    for i in rand_shuf.data:
+        assert i in test_epochs.data
+
+
     rand_sess = session.shuffle(sess)
     assert isinstance(rand_sess, session.Session)
     for i in rand_sess.data:
@@ -58,6 +109,18 @@ def test_shuffle():
 
 
     rand_sess= session.shuffle(sess_u)
+    assert isinstance(rand_sess, session.Session)
+    for i in rand_sess.data:
+        assert i in sess_u.data
+
+
+    rand_sess= session.shuffle(sess_l)
+    assert isinstance(rand_sess, session.Session)
+    for i in rand_sess.data:
+        assert i in sess_u.data
+
+
+    rand_sess= session.shuffle(sess_r)
     assert isinstance(rand_sess, session.Session)
     for i in rand_sess.data:
         assert i in sess_u.data

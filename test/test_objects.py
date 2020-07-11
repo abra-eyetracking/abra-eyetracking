@@ -7,8 +7,8 @@ import numpy as np
 
 default_obj = data.read("test/asc/1211NE1.asc")
 udef_obj = data.read("test/asc/22205.asc", mode = 'u', both_eyes_recorded = False, eyes_recorded = "auto")
-both_eyes_objR = data.read("88001.asc", mode = 'd', both_eyes_recorded = True, eyes_recorded = 'right')
-both_eyes_objL = data.read("88001.asc", mode = 'd', both_eyes_recorded = True, eyes_recorded = 'left')
+both_eyes_objR = data.read("test/asc/88001.asc", mode = 'd', both_eyes_recorded = True, eyes_recorded = 'right')
+both_eyes_objL = data.read("test/asc/88001.asc", mode = 'd', both_eyes_recorded = True, eyes_recorded = 'left')
 
 
 def test_trial_object():
@@ -46,7 +46,7 @@ def test_trial_object():
         assert isinstance(sum['min'], float)
         assert isinstance(sum['max'], float)
 
-    sess = both_eyes_objL_obj.create_session()
+    sess = both_eyes_objL.create_session()
     for t in sess.data:
         assert isinstance(t, trial.Trial)
         assert t.timestamps.ndim == 1
@@ -128,7 +128,7 @@ def test_session_object():
     assert isinstance(selected, session.Session)
     assert len(selected.data) == len(index)
 
-    sess = both_eyes_objL_obj.create_session()
+    sess = both_eyes_objL.create_session()
     assert isinstance(sess, session.Session)
     #assert isinstance(sess.data, list)
     assert isinstance(sess.data[0], trial.Trial)
@@ -144,13 +144,13 @@ def test_session_object():
     assert isinstance(sum['max'], float)
 
     pup = sess.get_pupil()
-    assert pup.shape[0] == 40
+    assert pup.shape[0] == 46
 
     trl = sess.get_trial(1)
     assert pup[0] in trl.pupil_size
 
     move = sess.get_movement()
-    assert move.shape[1] == 40
+    assert move.shape[1] == 46
 
     index = [0,1,5,7,8,4,20,15,14,22,30]
     selected = sess.select(index)
@@ -173,13 +173,13 @@ def test_session_object():
     assert isinstance(sum['max'], float)
 
     pup = sess.get_pupil()
-    assert pup.shape[0] == 40
+    assert pup.shape[0] == 46
 
-    trl = sess.get_trial(1)
-    assert pup[0] in trl.pupil_size
+    trl = sess.get_trial(5)
+    assert pup[4] in trl.pupil_size
 
     move = sess.get_movement()
-    assert move.shape[1] == 40
+    assert move.shape[1] == 46
 
     index = [0,1,5,7,8,4,20,15,14,22,30]
     selected = sess.select(index)
@@ -202,7 +202,7 @@ def test_epochs_object():
     assert isinstance(sum['min'], float)
     assert isinstance(sum['max'], float)
 
-    assert test_epochs.get_pupil().shape[1] == 200
+    assert test_epochs.get_pupil().shape[1] == 800
 
     index = [0,1,5,7,8,4,20,15,14,22,30]
     selected = test_epochs.select(index)
@@ -343,6 +343,7 @@ def test_data_object():
     assert both_eyes_objL.timestamps.size == both_eyes_objL.movement[1].size
     assert both_eyes_objL.movement[0].size == both_eyes_objL.movement[1].size
 
+
     assert both_eyes_objR.timestamps.size == both_eyes_objR.pupil_size.size
     assert both_eyes_objR.timestamps.size == both_eyes_objR.movement[0].size
     assert both_eyes_objR.timestamps.size == both_eyes_objR.movement[1].size
@@ -355,23 +356,53 @@ def test_data_object():
     assert default_obj.pupil_size.ndim == 1
     assert default_obj.movement.ndim == 2
 
+
     assert udef_obj.timestamps.ndim == 1
     assert udef_obj.pupil_size.ndim == 1
     assert udef_obj.movement.ndim == 2
+
+
+    assert both_eyes_objL.timestamps.ndim == 1
+    assert both_eyes_objL.pupil_size.ndim == 1
+    assert both_eyes_objL.movement.ndim == 2
+
+
+    assert both_eyes_objR.timestamps.ndim == 1
+    assert both_eyes_objR.pupil_size.ndim == 1
+    assert both_eyes_objR.movement.ndim == 2
 
     #Test data member type
     assert isinstance(default_obj.timestamps, np.ndarray)
     assert isinstance(default_obj.pupil_size, np.ndarray)
     assert isinstance(default_obj.movement, np.ndarray)
-    assert isinstance(default_obj.sample_rate, int)
+    assert isinstance(default_obj.sample_rate, float)
     assert isinstance(default_obj.calibration, dict)
     assert isinstance(default_obj.messages, dict)
     assert isinstance(default_obj.events, dict)
 
+
     assert isinstance(udef_obj.timestamps, np.ndarray)
     assert isinstance(udef_obj.pupil_size, np.ndarray)
     assert isinstance(udef_obj.movement, np.ndarray)
-    assert isinstance(udef_obj.sample_rate, int)
+    assert isinstance(udef_obj.sample_rate, float)
     assert isinstance(udef_obj.calibration, dict)
     assert isinstance(udef_obj.messages, dict)
     assert isinstance(udef_obj.events, dict)
+
+
+    assert isinstance(both_eyes_objL.timestamps, np.ndarray)
+    assert isinstance(both_eyes_objL.pupil_size, np.ndarray)
+    assert isinstance(both_eyes_objL.movement, np.ndarray)
+    assert isinstance(both_eyes_objL.sample_rate, float)
+    assert isinstance(both_eyes_objL.calibration, dict)
+    assert isinstance(both_eyes_objL.messages, dict)
+    assert isinstance(both_eyes_objL.events, dict)
+
+
+    assert isinstance(both_eyes_objR.timestamps, np.ndarray)
+    assert isinstance(both_eyes_objR.pupil_size, np.ndarray)
+    assert isinstance(both_eyes_objR.movement, np.ndarray)
+    assert isinstance(both_eyes_objR.sample_rate, float)
+    assert isinstance(both_eyes_objR.calibration, dict)
+    assert isinstance(both_eyes_objR.messages, dict)
+    assert isinstance(both_eyes_objR.events, dict)

@@ -239,12 +239,12 @@ def event_read(events_dict, elements, eyes_recorded, both_eyes_recorded):
     # will extract left or right eye data from recording set set from both eye recordings
     if both_eyes_recorded:
         if(eyes_recorded == "left"):
-            if event_name not in events_dict and elements[1] == "L":
+            if (elements[1] == "R" and event_name not in events_dict):
                 events_dict[event_name] = []
         elif(eyes_recorded == "right"):
-            if event_name not in events_dict and elements[1] == "R":
+            if (elements[1] == "R" and event_name not in events_dict):
                 events_dict[event_name] = []
-        elif (event_name in events_dict):
+        if(event_name in events_dict):
             event_list_variable = elements[2:]
             temp_list = []
             for var in event_list_variable:
