@@ -11,6 +11,8 @@ udef_obj = data.read('test/asc/22205.asc', mode = 'u')
 def test_travis():
     utils.test_travis()
 
+random stuff to break the program
+
 def test_read_output():
     assert isinstance(default_obj, data.Data)
     assert isinstance(udef_obj, data.Data)
