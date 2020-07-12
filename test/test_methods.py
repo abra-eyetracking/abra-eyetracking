@@ -3,9 +3,13 @@ from abra import data
 from abra import trial
 from abra import session
 import numpy as np
+from abra import utils
 
 default_obj = data.read('test/asc/1211NE1.asc')
 udef_obj = data.read('test/asc/22205.asc', mode = 'u')
+
+def test_travis():
+    utils.test_travis()
 
 def test_read_output():
     assert isinstance(default_obj, data.Data)
