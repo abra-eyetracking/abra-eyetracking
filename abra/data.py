@@ -14,8 +14,8 @@ def is_number(s):
         return False
 
 
-def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
-         end_msg=r"TRIAL \d{1,2} END", autoepoch=False):
+def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d", start_msg=r"TRIAL \d{1,2} START",
+         end_msg=r"TRIAL \d{1,2} END"):
     """
     Read method will read in the ascii file and extract the data
     "file_name" will take in the name of the file you are trying
@@ -27,6 +27,15 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
 
     "default" will use the default start and end times given in the file
     "user defined" will take in "start_msg" and "end_msg" to use as the
+
+    eyes_recorded: Define which eye data to extract if both eyes are
+                   being recorded
+    "left", "right", "auto"
+    default is "auto" which will take whichever eye it finds first
+
+    both_eyes_recorded:
+    True: if both eyes were recorded
+    False: is only the left or right eyes was being recorded
 
     start and end marker
     "start_msg" will use regular expression to identify the user inputed
@@ -60,7 +69,7 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
         pupil_size_list = []
         movement_list = [[], []]
         rate_list = {}
-
+        eyes_recorded = eyes_recorded.lower()
         # Default Mode
         if mode == "d":
             for num, line in enumerate(f, 1):
@@ -77,12 +86,14 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                 if start_time:
                     if line.startswith(start_time):
                         flag = True
+                if "RATE" in elements:
+                    sample_rate = get_sample_rate(elements, both_eyes_recorded)
 
                 # check for start
                 if flag is True:
                     # will get pupil size, timestamps, and movements
                     if is_number(elements[0]):
-                        timestamps_list, pupil_size_list, movement_list = tpm_read(timestamps_list, pupil_size_list, movement_list, elements)
+                        timestamps_list, pupil_size_list, movement_list = tpm_read(timestamps_list, pupil_size_list, movement_list, elements, eyes_recorded, both_eyes_recorded)
 
                     # Gets all messages between START and END
                     elif elements[0] == "MSG":
@@ -90,7 +101,7 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
 
                     # Gets all events between START and END
                     elif not is_number(elements[1]):
-                        events_dict = event_read(events_dict, elements)
+                        events_dict = event_read(events_dict, elements, eyes_recorded, both_eyes_recorded)
 
 
         # User Defined Mode
@@ -114,24 +125,27 @@ def read(filename, mode="d", start_msg=r"TRIAL \d{1,2} START",
                     flag = False
                     continue
 
+                if "RATE" in elements:
+                    sample_rate = get_sample_rate(elements, both_eyes_recorded)
+
                 # check for start marker
                 if flag is True:
                     # will get pupil size, timestamps, and movements
                     if is_number(elements[0]):
-                        timestamps_list, pupil_size_list, movement_list = tpm_read(timestamps_list, pupil_size_list, movement_list, elements)
+                        timestamps_list, pupil_size_list, movement_list = tpm_read(timestamps_list, pupil_size_list, movement_list, elements, eyes_recorded, both_eyes_recorded)
                     # Gets messages between START and END markers
                     elif elements[0] == "MSG":
                         messages_dict[elements[1]] = elements[2:]
                     # Gets all events between START and END markers
                     elif not is_number(elements[1]):
-                        events_dict = event_read(events_dict, elements)
+                        events_dict = event_read(events_dict, elements, eyes_recorded, both_eyes_recorded)
 
 
     # convert list to numpy array
     timestamps = np.array(timestamps_list)
     pupil_size = np.array(pupil_size_list)
     movement = np.array(movement_list)
-    return Data(timestamps, pupil_size, movement, 500, {}, messages_dict,
+    return Data(timestamps, pupil_size, movement, sample_rate, {}, messages_dict,
                 events_dict, trial_markers)
 
 
@@ -163,72 +177,142 @@ def find_end(elements, end_time, trial_markers, messages_dict, flag, start_time)
     return end_time, trial_markers, messages_dict, flag, start_time
 
 
+def get_sample_rate(elements, both):
+    if both:
+        return float(elements[5])
+    else:
+        return float(elements[4])
 
-def tpm_read(timestamps_list, pupil_size_list, movement_list, elements):
+
+def tpm_read(timestamps_list, pupil_size_list, movement_list,
+             elements, eyes_recorded, both_eyes_recorded):
     """
     Finds And Returns Timestamps, Pupil Size, and Movements From Each Trial
     """
-    if(elements[1] == "."):
-        timestamps_list.append(int(elements[0]))
-        pupil_size_list.append(np.nan)
-        movement_list[0].append(np.nan)  # x-axis
-        movement_list[1].append(np.nan)
+    if both_eyes_recorded:
+        if (eyes_recorded == "left"):
+            if(elements[1] == "."):
+                timestamps_list.append(int(elements[0]))
+                pupil_size_list.append(np.nan)
+                movement_list[0].append(np.nan)  # x-axis
+                movement_list[1].append(np.nan)
+            else:
+                timestamps_list.append(int(elements[0]))
+                pupil_size_list.append(float(elements[1]))
+                movement_list[0].append(float(elements[3]))  # x-axis
+                movement_list[1].append(float(elements[2]))  # y-axis
+
+        elif(eyes_recorded == "right"):
+            if(elements[4] == "."):
+                timestamps_list.append(int(elements[0]))
+                pupil_size_list.append(np.nan)
+                movement_list[0].append(np.nan)  # x-axis
+                movement_list[1].append(np.nan)
+            else:
+                timestamps_list.append(int(elements[0]))
+                pupil_size_list.append(float(elements[4]))
+                movement_list[0].append(float(elements[6]))  # x-axis
+                movement_list[1].append(float(elements[5]))  # y-axis
+        else:
+            raise NameError("Define if eyes_recorded was either the left eye or the right eye")
     else:
-        timestamps_list.append(int(elements[0]))
-        pupil_size_list.append(float(elements[1]))
-        movement_list[0].append(float(elements[3]))  # x-axis
-        movement_list[1].append(float(elements[2]))  # y-axis
+        if(elements[1] == "."):
+            timestamps_list.append(int(elements[0]))
+            pupil_size_list.append(np.nan)
+            movement_list[0].append(np.nan)  # x-axis
+            movement_list[1].append(np.nan)
+        else:
+            timestamps_list.append(int(elements[0]))
+            pupil_size_list.append(float(elements[1]))
+            movement_list[0].append(float(elements[3]))  # x-axis
+            movement_list[1].append(float(elements[2]))  # y-axis
     return timestamps_list, pupil_size_list, movement_list
 
 
 
-def event_read(events_dict, elements):
+def event_read(events_dict, elements, eyes_recorded, both_eyes_recorded):
     """
     Finds And Returns Events
     - Checks if event name already exists before appending
     """
     event_name = f"{elements[0]} {elements[1]}"
-    if event_name not in events_dict:
-        events_dict[event_name] = []
+    # will extract left or right eye data from recording set set from both eye recordings
+    if both_eyes_recorded:
+        if(eyes_recorded == "left"):
+            if (elements[1] == "R" and event_name not in events_dict):
+                events_dict[event_name] = []
+        elif(eyes_recorded == "right"):
+            if (elements[1] == "R" and event_name not in events_dict):
+                events_dict[event_name] = []
+        if(event_name in events_dict):
+            event_list_variable = elements[2:]
+            temp_list = []
+            for var in event_list_variable:
+                if var == ".":
+                    var = np.nan
+                    temp_list.append(var)
+                else:
+                    temp_list.append(float(var))
+            event_list_variable = temp_list
 
-    event_list_variable = elements[2:]
-    temp_list = []
-    for var in event_list_variable:
-        if var == ".":
-            var = np.nan
-            temp_list.append(var)
-        else:
-            temp_list.append(float(var))
-    event_list_variable = temp_list
+            temp_list = list(map(float,temp_list))
+            events_dict[event_name].append(temp_list)
 
-    temp_list = list(map(float,temp_list))
-    events_dict[event_name].append(temp_list)
+    # will extract data from one eye data, 'auto'
+    else:
+        if event_name not in events_dict:
+            events_dict[event_name] = []
+
+        event_list_variable = elements[2:]
+        temp_list = []
+        for var in event_list_variable:
+            if var == ".":
+                var = np.nan
+                temp_list.append(var)
+            else:
+                temp_list.append(float(var))
+        event_list_variable = temp_list
+
+        temp_list = list(map(float,temp_list))
+        events_dict[event_name].append(temp_list)
     return events_dict
 
 
 
-def pupil_size_remove_eye_blinks(abra_obj, buffer=50, interpolate='linear', inplace=False):
+def remove_eye_blinks(abra_obj, buffer=50, interpolate='linear', inplace=False):
     """
     The remove_eye_blinks method replaces the eyeblinks (NAS) with
     interpolated data, with a buffer of 50 data points and linear spline
     to do interpolation.
     ### Linear interpolation is what is supported right now.
     """
+    ##keep NAs for the movemnt
     #Buffer
     pupilsize_ = np.copy(abra_obj.pupil_size)
+    movements_ = np.copy(abra_obj.movement)
     blink_times = np.isnan(pupilsize_)
+
     for j in range(len(blink_times)):
         if blink_times[j]==True:
             pupilsize_[j-buffer:j+buffer]=np.nan
+            movements_[0][j-buffer:j+buffer]=np.nan
+            movements_[1][j-buffer:j+buffer]=np.nan
+    abra_obj.movement = movements_
 
     # Interpolate
+    interp_move = [[],[]]
     if interpolate=='linear':
         interp_pupil_size = utils.linear_interpolate(pupilsize_)
+        # interp_move = utils.linear_interpolate(movements_)
+        # interp_move = utils.linear_interpolate(movements_)
+
         if inplace == True:
             abra_obj.pupil_size = interp_pupil_size
+            # abra_obj.pupil_size = interp_move
         elif inplace == False:
             tmp_obj = copy.deepcopy(abra_obj)
             tmp_obj.pupil_size = interp_pupil_size
+            # tmp_obj.movement = movements_
             return tmp_obj
     else:
         print("We haven't implement anyother interpolation methods yet")
@@ -356,8 +440,7 @@ class Data:
             if (len(conditions) != num_trials):
                 raise ValueError('Condition length must be equal to the number of trials: ', num_trials)
 
-        return session.Session(np.array(trials), conditions)
-
+        return session.Session(np.array(trials), self.sample_rate, conditions)
 
     def create_epochs(self, event_timestamps, conditions=None, pre_event=200, post_event=200, pupil_baseline=None):
         """
@@ -375,7 +458,7 @@ class Data:
         #Create an empty array for storing the epoch information
         win_size = int((pre_event+post_event)*self.sample_rate/1000)
         all_epochs = []
-        
+
         # Iterate timestamp events get each epoch pupil size
         for i in range(len(event_timestamps)):
             start = event_timestamps[i]-pre_event
@@ -403,5 +486,5 @@ class Data:
             t = trial.Trial(self.timestamps[idx], epoch_pupil, epoch_movex, epoch_movey)
             all_epochs.append(t)
 
-        epochs = session.Epochs(all_epochs, conditions)
+        epochs = session.Epochs(all_epochs, self.sample_rate, conditions)
         return epochs
