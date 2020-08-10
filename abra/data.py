@@ -210,7 +210,7 @@ def event_read(events_dict, elements):
 
 
 def pupil_size_remove_eye_blinks(abra_obj, buffer=50, interpolate=False,interp_method = 'linear', inplace=False):
-    # Creating a buffeir
+    # Creating a buffer
     pupilsize_ = np.copy(abra_obj.pupil_size)
     blink_times = np.isnan(pupilsize_)
     for j in range(len(blink_times)):
@@ -391,7 +391,10 @@ class Data:
                 # Explicitly set all values beyond window size to False
                 # Enforcing the length to be the defined window size
                 idx[non_zero_idx[0][0]+win_size:]=False
-            epoch = self.pupil_size[idx]
+
+            epoch_pupil = self.pupil_size[idx]
+            epoch_movex = self.movement[1][idx]
+            epoch_movey = self.movement[0][idx]
 
             # Do baselining using the mean and standard deviation of the mean and variance
             if pupil_baseline:
@@ -399,9 +402,9 @@ class Data:
                 baseline_period = self.pupil_size[baseline_idx]
                 baseline_mean = np.mean(baseline_period)
                 baseline_std = np.std(baseline_period)
-                epoch = (epoch - baseline_mean)/baseline_std
+                epoch_pupil = (epoch_pupil - baseline_mean)/baseline_std
 
-            t = trial.Trial(self.timestamps[idx], epoch)
+            t = trial.Trial(self.timestamps[idx], epoch_pupil, epoch_movex, epoch_movey)
             all_epochs.append(t)
 
         epochs = session.Epochs(all_epochs, conditions)
