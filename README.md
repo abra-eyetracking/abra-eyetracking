@@ -5,3 +5,5 @@ Abra is an open-source python eye tracking data analysis tool which provides a s
 #### Installation
 Python 3:
 `pip install abra`
+
+Check out the documentation here: https://abra-eyetracking.github.io/
