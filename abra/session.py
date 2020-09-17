@@ -205,10 +205,7 @@ class Base:
                 for time_index in range(len(tmp_ls[index])):
                     if(fix_index[0] == tmp_ls[index][time_index]):
                         in_fix = True
-                        # print(1)
-                        # movements[0].append(movement_list[0][index][time_index])
-                        # print(movement_list[0][index][time_index])
-                        # movements[1].append(movement_list[1][index][time_index])
+                        
                     elif(fix_index[1] == tmp_ls[index][time_index]):
                         in_fix = False
                         movements[0].append(movement_list[0][index][time_index])
@@ -243,7 +240,7 @@ class Base:
 
 
 
-    def plot_pupil_size(self, trial_num):
+    def plot_pupil_size(self, trial_num = 1):
         """
         Plots pupil size of a specified trial over a period of time
         """
@@ -257,24 +254,41 @@ class Base:
 
 
 
-    def plot_tragectory(self, trial_num):
+    def plot_tragectory(self, trial_num = 1, image_file = None, screen_size = [1920, 1080]):
         """
         Plots Eye Movement Tragectory for Specified Trial
         """
 
         index = trial_num - 1
         m = self.get_movement()
-        plt.xlim(0,1920)
-        plt.ylim(0,1080)
-        plt.plot(m[1][index], m[0][index])
-        plt.title('Movement: Trial %1.f' % trial_num)
-        plt.xlabel('Horizontal Eye Movement')
-        plt.ylabel('Vertical Eye Movement')
+
+        my_dpi = 96
+        fig = plt.figure(figsize=(10, 10), dpi=my_dpi)
+        # fig.set_size_pixe
+        ax = fig.add_subplot(111)
+
+        ax.set_xlim(0,screen_size[0])
+        ax.set_ylim(0,screen_size[1])
+        ax.plot(m[0][index], m[1][index])
+        ax.set_title('Movement: Trial %1.f' % trial_num)
+        ax.set_xlabel('Horizontal Eye Movement')
+        ax.set_ylabel('Vertical Eye Movement')
+        if image_file:
+            img = mpimg.imread(image_file)
+            # print(img.size)
+            new_img = img.resize((screen_size[0], screen_size[1]))
+            xsize = int((screen_size[0]-img.shape[0])/2)
+            ysize = int((screen_size[1]-img.shape[1])/2)
+
+            imgplot = ax.imshow(img, extent=(xsize, screen_size[0]-xsize, ysize, screen_size[1]-ysize))
+            ax.axis('scaled')
+            ax.set_xlim(0,screen_size[0])
+            ax.set_ylim(0,screen_size[1])
         plt.show()
 
 
 
-    def plot_xy(self, trial_num):
+    def plot_xy(self, trial_num = 1):
         """
         Plots x-coordinates and y-coordinate over a period of time
         """
@@ -288,23 +302,19 @@ class Base:
         plt.show()
 
     def get_x_y(self, data):
-        # print('i')
         tempX = []
         tempY = []
         x=[]
         y=[]
         for index_1 in data:
-            # print(1)
             x.append([np.mean(index_1[0]),len(index_1[0])])
 
-        # x.append(tempX)
         for index_1 in data:
             y.append([np.mean(index_1[1]),len(index_1[1])])
-        # y.append(tempY)
 
         return np.array(x), np.array(y)
 
-    def get_bubble_plot(self, trial_num, image_file = None, screen_size = [1920, 1080]):
+    def get_bubble_plot(self, trial_num = 1, image_file = None, screen_size = [1920, 1080]):
         """
         Will Return A Bubble Plot Of Eye Fixations
         Image Will Be Centered On The Graph
@@ -320,37 +330,27 @@ class Base:
         """
 
         data = self.get_fixation()
-        # print(len(data))
-        x,y = self.get_x_y(np.array(data[trial_num]))
-        # print([1,2] == [1,2])
+        x,y = self.get_x_y(np.array(data[trial_num-1]))
         xy_list = []
-        # xy_indexes = []
-        # print(x[0])
-        # print(x[1])
+
         my_dpi = 96
         fig = plt.figure(figsize=(800/my_dpi, 800/my_dpi), dpi=my_dpi)
-        # fig.set_size_pixe
         ax = fig.add_subplot(111)
 
         xi = [xi[0] for xi in x]
         z = np.array([z[1] for z in x])
         yi = [yi[0] for yi in y]
-        # for x_i,y_i,z_i in zip(xi,yi,z):
-        # print(z)
+
         ax.set_xlim(0,screen_size[0])
         ax.set_ylim(0,screen_size[1])
         ax.scatter(xi, yi, s=z/10, alpha=0.4)
-        img = mpimg.imread(image_file)
-        # print(img.size)
-        # new_img = img.resize((int(500), int(500)))
-        xsize = int((1920-img.shape[0])/2)
-        ysize = int((1080-img.shape[1])/2)
-        print(img.shape)
-        print(xsize)
-        print(ysize)
-        imgplot = ax.imshow(img, extent=(xsize, 1920-xsize, ysize, 1080-ysize))
 
-        # imshow(img)
+        if image_file not None:
+            img = mpimg.imread(image_file)
+            xsize = int((screen_size[0]-img.shape[0])/2)
+            ysize = int((screen_size[1]-img.shape[1])/2)
+            imgplot = ax.imshow(img, extent=(xsize, screen_size[0]-xsize, ysize, screen_size[1]-ysize))
+
         plt.show()
 
 
