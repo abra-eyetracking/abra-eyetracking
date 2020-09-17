@@ -205,7 +205,7 @@ class Base:
                 for time_index in range(len(tmp_ls[index])):
                     if(fix_index[0] == tmp_ls[index][time_index]):
                         in_fix = True
-                        
+
                     elif(fix_index[1] == tmp_ls[index][time_index]):
                         in_fix = False
                         movements[0].append(movement_list[0][index][time_index])
@@ -345,7 +345,7 @@ class Base:
         ax.set_ylim(0,screen_size[1])
         ax.scatter(xi, yi, s=z/10, alpha=0.4)
 
-        if image_file not None:
+        if image_file:
             img = mpimg.imread(image_file)
             xsize = int((screen_size[0]-img.shape[0])/2)
             ysize = int((screen_size[1]-img.shape[1])/2)
