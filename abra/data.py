@@ -49,6 +49,8 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
 
     Returns Data Object
     """
+
+
     # TODO parse info
     if not filename.endswith(".asc"):
         # Raise an error for checking file name extension
@@ -69,7 +71,12 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
         pupil_size_list = []
         movement_list = [[], []]
         rate_list = {}
+        input_dict = {}
+        button_dict = {}
+        misc = []
+
         eyes_recorded = eyes_recorded.lower()
+
         # Default Mode
         if mode == "d":
             for num, line in enumerate(f, 1):
@@ -99,9 +106,19 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
                     elif elements[0] == "MSG":
                         messages_dict[int(elements[1])] = elements[2:]
 
+                    # Gets Input triggers
+                    elif elements[0] == "INPUT":
+                        input_dict = input_read(input_dict, elements)
+
+                    # Gets Button triggers
+                    elif elements[0] == "BUTTON":
+                        button_dict = button_read(button_dict, elements)
+
                     # Gets all events between START and END
                     elif not is_number(elements[1]):
                         events_dict = event_read(events_dict, elements, eyes_recorded, both_eyes_recorded)
+                    else:
+                        misc = misc_read(elements,misc)
 
 
         # User Defined Mode
@@ -109,6 +126,7 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
             # initializes the regular expressions for start and end markers
             start_msg = re.compile(start_msg)
             end_msg = re.compile(end_msg)
+
             for num, line in enumerate(f, 1):
                 elements = line.split()
                 # finds start time using user defined marker
@@ -133,20 +151,32 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
                     # will get pupil size, timestamps, and movements
                     if is_number(elements[0]):
                         timestamps_list, pupil_size_list, movement_list = tpm_read(timestamps_list, pupil_size_list, movement_list, elements, eyes_recorded, both_eyes_recorded)
+
                     # Gets messages between START and END markers
                     elif elements[0] == "MSG":
-                        messages_dict[elements[1]] = elements[2:]
+                        messages_dict[int(elements[1])] = elements[2:]
+
+                    # Gets Input triggers
+                    elif elements[0] == "INPUT":
+                        input_dict = input_read(input_dict, elements)
+
+                    # Gets Button triggers
+                    elif elements[0] == "BUTTON":
+                        input_dict = button_read(button_dict, elements)
+
                     # Gets all events between START and END markers
                     elif not is_number(elements[1]):
                         events_dict = event_read(events_dict, elements, eyes_recorded, both_eyes_recorded)
 
+                    else:
+                        misc = misc_read(elements,misc)
 
     # convert list to numpy array
     timestamps = np.array(timestamps_list)
     pupil_size = np.array(pupil_size_list)
     movement = np.array(movement_list)
     return Data(timestamps, pupil_size, movement, sample_rate, {}, messages_dict,
-                events_dict, trial_markers)
+                events_dict, trial_markers, button_dict, input_dict, misc)
 
 
 
@@ -229,6 +259,47 @@ def tpm_read(timestamps_list, pupil_size_list, movement_list,
     return timestamps_list, pupil_size_list, movement_list
 
 
+def input_read(input_dict, elements):
+    input_num = int(elements[2])
+    if input_num not in input_dict:
+        input_dict[input_num] = []
+    input_dict[input_num].append(int(elements[1]))
+    # print(input_dict)
+
+    return input_dict
+
+
+def button_read(button_dict, elements):
+    button_num = int(elements[2])
+    button_press = int(elements[3])
+    if button_num not in button_dict:
+        button_dict[button_num] = [[],[]]
+
+    if button_press == 1:
+        button_dict[button_num][1].append(int(elements[1]))
+
+    elif button_press == 0:
+        button_dict[button_num][0].append(int(elements[1]))
+
+    return button_dict
+
+
+
+    button_name = f"{elements[0]} {elements[2]}"
+    # will extract left or right eye data from recording set set from both eye recordings
+
+    if (button_name not in button_dict):
+        button_dict[button_name] = [[],[]]
+    if(button_name in button_dict):
+        button_list_variable = int(elements[3])
+        temp_list = []
+        for var in event_list_variable:
+            temp_list.append(int(var))
+        event_list_variable = temp_list
+
+def misc_read(elements,misc):
+    misc.append([elements])
+    return misc
 
 def event_read(events_dict, elements, eyes_recorded, both_eyes_recorded):
     """
@@ -328,28 +399,45 @@ class Data:
 
     - Stores data values of timestamps, pupil_size, movement, sample_rate,
       calibration, messages, events, trial_markers
+
     - Value Types:
         - timestamps: List (1xn)
+
         - pupil_size: List (1xn)
+
         - Movement: List (2xn)
             > index 0: x-coordinates
             > index 1: y-coordinates
+
         - sample_rate: int
+
         -calibration: Dictionary (not implimented yet)
+
         - message: Dictionary
             > key: timestamp integer
             > value: message
+
         - events: Dictionary
             > key: event name
             > value: list of [start timestamp, end timestamp,
                               avg y-coordinate, avg x-coordinate,
                               avg pupil size]
+
         - trial_markers: Dictionary
             > key: 'Start' or 'End'
             > value: list of time stamps
+
+        -buttons: Dictionary
+            > key: button number
+            > value: list [unpress (0)] and [press (1)]
+                > index 0 is unpress
+                > index 1 is press
     """
+
+
     def __init__(self, timestamps, pupil_size, movement, sample_rate,
-                 calibration, messages, events, trial_markers):
+                 calibration, messages, events, trial_markers, buttons,
+                 inputs, misc):
         self.timestamps = timestamps
         self.pupil_size = pupil_size
         self.movement = movement
@@ -358,24 +446,68 @@ class Data:
         self.messages = messages
         self.events = events
         self.trial_markers = trial_markers
+        self.buttons = buttons
+        self.inputs = inputs
+        self.misc = misc
 
 
 
-    def create_session(self, conditions=None):
+    def create_session(self, conditions=None, start_marker = 'msg',
+                       end_marker = 'msg', input_start = None, input_end = None,
+                       button_start = None, button_end = None):
         """
         This function splits the pupil size and timestamp data into
         its respective trials and returns an array of trial class
         objects
 
-        condition: event condition
+        - condition: event condition
+
+        - start_marker: type of marker set to identify the start of the session
+            - 'msg': defualt marker type. Inputs message in data to identify start
+            - 'input': Uses an input marker to symbolize the start of the session
+            - 'button': Uses buttons events to identify the start of a session
+
+        - end_marker: type of marker set to identify the end of the session
+            - 'msg': defualt marker type. Inputs message in data to identify end
+            - 'input': Uses an input marker to symbolize the end of the session
+            - 'button': Uses buttons events to identify the end of a session
+
+        - input_start: input number (eg. input_start = 1)
+
+        - input_end: input number (eg. input_end = 2)
+
+        - button_start: button number and whether you want the press event or
+                        release event. (eg. button_start = 1_1 for press
+                                            button_start = 1_0 for release)
+
+        - button_end: button number and whether you want the press event or
+                      release event (eg. button_start = 1_1 for press
+                                         button_start = 1_0 for release)
+
         """
-        t_Mark = self.trial_markers
+
+
         t_Time = self.timestamps
-        start = t_Mark['start']
-        end  = t_Mark['end']
+        if(start_marker.lower() == 'msg'):
+            t_Mark = self.trial_markers
+            start = t_Mark['start']
+
+        elif(start_marker.lower() == 'input'):
+            start = self.inputs[input_start]
+        elif(start_marker.lower() == 'button'):
+            start = self.buttons[button_start[0]][button_start[1]]
+
+        if(end_marker.lower() == 'msg'):
+            end = t_Mark['end']
+        elif end_marker.lower() == 'input':
+            end = self.inputs[input_end]
+        elif end_marker.lower() == 'button':
+            end = self.buttons[button_end[0]][button_start[1]]
+
 
         # All trial start and end markers in array ([start,end])
         trial_IDX = []
+
         for i in range(len(start)):
             temp = []
             st = start[i]
@@ -442,7 +574,8 @@ class Data:
 
         return session.Session(np.array(trials), self.sample_rate, conditions)
 
-    def create_epochs(self, event_timestamps, conditions=None, pre_event=200, post_event=200, pupil_baseline=None):
+    def create_epochs(self, event_timestamps, conditions=None, pre_event=200,
+                      post_event=200, pupil_baseline=None):
         """
         Create Time Locking Epochs
 
