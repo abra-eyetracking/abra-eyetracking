@@ -10,6 +10,7 @@ import copy
 
 
 def shuffle(Base):
+
     """
     Randomly Shuffles Trials in Epoch and Sessions
     """
@@ -53,6 +54,7 @@ def shuffle(Base):
 
 
 class Base:
+
     """
     Base Class for Session and Epoch
     """
@@ -67,6 +69,7 @@ class Base:
 
 
     def summary(self, verbose = False):
+
         """
         summary: Dictionary of summary statistic for pupil size
             > mean: pupil mean
@@ -112,6 +115,7 @@ class Base:
 
 
     def get_trial(self, trial_num):
+
         """
         Return Specified Trial
         > 1 == index 0 for trial list
@@ -123,6 +127,7 @@ class Base:
 
 
     def get_pupil(self):
+
         """
         Returns Numpy Array Of Trials Containing Pupil Sizes
         """
@@ -135,6 +140,7 @@ class Base:
 
 
     def get_movement(self):
+
         """
         Returns Numpy Array Of Trials Containing Movements
             > index 0: x-coordinates
@@ -148,6 +154,7 @@ class Base:
         return np.array(move_list)
 
     def get_timestamps(self):
+
         """
         Returns Numpy Array Of Trials Containing Timestamps
         """
@@ -160,6 +167,7 @@ class Base:
 
 
     def get_fixation(self):
+
         """
         Returns Numpy Array Of Trials Containing
          x And y Fixations Coordinates
@@ -223,6 +231,7 @@ class Base:
 
 
     def select(self, indexes):
+
         """
         Selects Specified Trial By Index Value
         """
@@ -241,6 +250,7 @@ class Base:
 
 
     def plot_pupil_size(self, trial_num = 1):
+
         """
         Plots pupil size of a specified trial over a period of time
         """
@@ -255,6 +265,7 @@ class Base:
 
 
     def plot_tragectory(self, trial_num = 1, image_file = None, screen_size = [1920, 1080]):
+
         """
         Plots Eye Movement Tragectory for Specified Trial
         """
@@ -289,6 +300,7 @@ class Base:
 
 
     def plot_xy(self, trial_num = 1):
+
         """
         Plots x-coordinates and y-coordinate over a period of time
         """
@@ -302,6 +314,7 @@ class Base:
         plt.show()
 
     def get_x_y(self, data):
+
         tempX = []
         tempY = []
         x=[]
@@ -315,6 +328,7 @@ class Base:
         return np.array(x), np.array(y)
 
     def get_bubble_plot(self, trial_num = 1, image_file = None, screen_size = [1920, 1080]):
+
         """
         Will Return A Bubble Plot Of Eye Fixations
         Image Will Be Centered On The Graph
@@ -355,6 +369,7 @@ class Base:
 
 
 class Session(Base):
+
     """
     Subclass of Base that hold whole trials
         > Reserved for later development for trials
@@ -366,6 +381,7 @@ class Session(Base):
 
 
 class Epochs(Base):
+    
     """
     Subclass of Base that hold time locking epochs
         > Reserved for later development for Epochs

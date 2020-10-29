@@ -3,6 +3,7 @@ import numpy as np
 
 
 class Trial:
+    
     """
     The Trial Class For Individual trials Within The 'data' Data Structure
 
