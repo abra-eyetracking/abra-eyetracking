@@ -16,7 +16,7 @@ def is_number(s):
 
 def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d", start_msg=r"TRIAL \d{1,2} START",
          end_msg=r"TRIAL \d{1,2} END"):
-         
+
     """
     Read method will read in the ascii file and extract the data
     "file_name" will take in the name of the file you are trying
@@ -54,12 +54,14 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
 
 
     if not filename.endswith(".asc"):
-        raise ValueError("Extension must be .csv or .txt")
+        # raise ValueError("Extension must be .csv or .txt")
+        pass
 
 
     mode = mode.lower()
     if not mode == "d" or not mode == "u":
-        raise ValueError("Mode must be 'd' for default or 'u' for user input")
+        # raise ValueError("Mode must be 'd' for default or 'u' for user input")
+        pass
 
 
     with open(filename) as f:
