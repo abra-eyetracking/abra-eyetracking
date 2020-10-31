@@ -16,6 +16,7 @@ def is_number(s):
 
 def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d", start_msg=r"TRIAL \d{1,2} START",
          end_msg=r"TRIAL \d{1,2} END"):
+
     """
     Read method will read in the ascii file and extract the data
     "file_name" will take in the name of the file you are trying
@@ -51,13 +52,17 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
     """
 
 
-    # TODO parse info
+
     if not filename.endswith(".asc"):
-        # Raise an error for checking file name extension
+        # raise ValueError("Extension must be .csv or .txt")
         pass
+
+
+    mode = mode.lower()
     if not mode == "d" or not mode == "u":
-        # raise exception invalid mode
+        # raise ValueError("Mode must be 'd' for default or 'u' for user input")
         pass
+
 
     with open(filename) as f:
         start_time = ""
@@ -78,7 +83,7 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
         eyes_recorded = eyes_recorded.lower()
 
         # Default Mode
-        if mode == "d":
+        if mode. == "d":
             for num, line in enumerate(f, 1):
                 elements = line.split()
 
@@ -228,8 +233,8 @@ def tpm_read(timestamps_list, pupil_size_list, movement_list,
                 movement_list[1].append(np.nan)
             else:
                 timestamps_list.append(int(elements[0]))
-                pupil_size_list.append(float(elements[1]))
-                movement_list[0].append(float(elements[3]))  # x-axis
+                pupil_size_list.append(float(elements[3]))
+                movement_list[0].append(float(elements[1]))  # x-axis
                 movement_list[1].append(float(elements[2]))  # y-axis
 
         elif(eyes_recorded == "right"):
@@ -240,8 +245,8 @@ def tpm_read(timestamps_list, pupil_size_list, movement_list,
                 movement_list[1].append(np.nan)
             else:
                 timestamps_list.append(int(elements[0]))
-                pupil_size_list.append(float(elements[4]))
-                movement_list[0].append(float(elements[6]))  # x-axis
+                pupil_size_list.append(float(elements[6]))
+                movement_list[0].append(float(elements[4]))  # x-axis
                 movement_list[1].append(float(elements[5]))  # y-axis
         else:
             raise NameError("Define if eyes_recorded was either the left eye or the right eye")
@@ -253,8 +258,8 @@ def tpm_read(timestamps_list, pupil_size_list, movement_list,
             movement_list[1].append(np.nan)
         else:
             timestamps_list.append(int(elements[0]))
-            pupil_size_list.append(float(elements[1]))
-            movement_list[0].append(float(elements[3]))  # x-axis
+            pupil_size_list.append(float(elements[3]))
+            movement_list[0].append(float(elements[1]))  # x-axis
             movement_list[1].append(float(elements[2]))  # y-axis
     return timestamps_list, pupil_size_list, movement_list
 
