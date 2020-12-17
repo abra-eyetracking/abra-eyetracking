@@ -1,10 +1,15 @@
+from scipy import interpolate, signal,stats
+from scipy.interpolate import interp1d
+from scipy.io import loadmat,savemat
 import numpy as np
 import re
-from . import utils
-from scipy.interpolate import interp1d
 import copy
+
+#From ABRA
+from . import utils
 from . import trial
 from . import session
+
 
 def is_number(s):
     try:
@@ -317,6 +322,208 @@ def remove_eye_blinks(abra_obj, buffer=50, interpolate='linear', inplace=False):
     else:
         print("We haven't implement anyother interpolation methods yet")
         return False
+
+
+def abra_preproc_pupil(data_, dspeed_th = 1, psize_th = 15, smooth=True,sm_window = 101,blink_buffer=50,interp_cluster_th=250,eye_dist_th=15):
+    # Remove Blinks
+    data = abra.remove_eye_blinks(data_,buffer=blink_buffer,interpolate='linear')
+
+    # Remove sections where eye movements occur
+    # Eye movement mask - create a series of distance values from center of screenshot
+
+    # FIRST make spots where distance deviates by more than 3 standard deviations nan.
+#     print(data)
+    eye_dist = np.sqrt((data.movement[0,:]-np.nanmedian(data.movement[0,:]))**2 + (data.movement[1,:]-np.nanmedian(data.movement[1,:]))**2)
+#     eye_dist = np.sqrt((data.movement[0,:]-500)**2 + (data.movement[1,:]-500)**2)
+
+    med_eye_dist = np.nanmedian(eye_dist)
+    mad_eye_dist = np.nanmedian(np.absolute(eye_dist - med_eye_dist))
+
+    data.pupil_size[np.greater(eye_dist,med_eye_dist+eye_dist_th*mad_eye_dist,where=~np.isnan(eye_dist))] = np.nan
+
+    # Remove Dilation Speed Outliers
+    # This works on the idea that the mean absolute deviation (MAD)
+    # gives a good estimate. First, calculate the differenced scores,
+    # i.e. the speed of dilation at each time point, then remove
+    # timepoints where that dilation speed exceeds the median plus
+    # some number of MADs.
+
+    # Note: np.diff returns NAN if either value is NAN, so do this before removing based just on size.
+
+    th_const = dspeed_th
+
+    dspeed_forward = np.absolute(np.diff(data.pupil_size,prepend = np.nanmean(data.pupil_size)))
+    dspeed_backward = np.absolute(np.flip(np.diff(np.flip(data.pupil_size),prepend = np.nanmean(data.pupil_size))))
+    dspeed = np.fmax(dspeed_forward,dspeed_backward)
+    meddspeed = np.nanmedian(dspeed)
+    meanad = np.nanmedian(np.absolute(dspeed - meddspeed))
+
+    data.pupil_size[np.greater(dspeed, (meddspeed + th_const*meanad),where=~np.isnan(dspeed))] = np.nan
+
+
+    # Remove Pupil Size Outliers
+    # Easy enough, remove pupil sizes that are greater than three mean absolute
+    # deviations from median (avoids being affected by outliers too much).
+    # However, this doesn't work as well as using speed.
+
+    # pup_mean = np.nanmean(data.pupil_size)
+    # pup_stdev = np.nanstd(data.pupil_size)
+    pup_med = np.nanmedian(data.pupil_size)
+    pup_mad = np.nanmedian(np.absolute(data.pupil_size - pup_med))
+
+    z_th = 15 # Should be rather large - otherwise you'll end up throwing things out.
+
+    data.pupil_size[np.greater(np.absolute((data.pupil_size - pup_med)/pup_mad),z_th,where=~np.isnan(data.pupil_size))] = np.nan
+
+
+    # Remove isolated data points
+
+    # TO-DO
+
+
+    # Interpolate
+    # Interpolation to fill missing data.
+    mask = ~np.isnan(data.pupil_size)
+
+    # Create a mask where clusters of nans go larger than interp_cluster_th (default 250 points, 500 ms) so we can remove those later.
+    # the custom function nan_cluster_mask returns an array the size of data.pupil_size, where it is true everywhere except where
+    # there is a continuous stretch of nans longer than interp_cluster_th.
+    cluster_mask = nan_cluster_mask(data.pupil_size,interp_cluster_th)
+    # Normal interpolation with scipy
+    # f = interpolate.interp1d(data.timestamps[mask],
+    #                          data.pupil_size[mask],
+    #                          kind='linear',
+    #                         fill_value=np.nan)
+    # data.pupil_size = f(data.timestamps)
+
+    # Interpolation with numpy
+    data.pupil_size = np.interp(data.timestamps,
+                                data.timestamps[mask],
+                                data.pupil_size[mask])
+
+    if smooth:
+        data.pupil_size = signal.savgol_filter(data.pupil_size,
+                                      window_length = sm_window, # How large of a window for filtering in samples - bigger is more smooth but less fit on original signal
+                                      polyorder = 3,
+                                      mode = 'nearest')
+
+    # Using the previous nan_cluster_mask (inverted), return the large sections to being nans.
+    data.pupil_size[~cluster_mask] = np.nan
+
+
+    return data
+
+def nan_cluster_mask(signal,threshold):
+    # Using the find_nan_clusters function (defined above), we find the starting index and length of every cluster of nans in a signal.
+    # Then, we create a mask over signal, similar to isnan, except we return False for spots where the nan clusters are too large.
+    # The use-case is for interpolation of data with mostly phasic artifacts where interpolation is fine, but occasionally there would be
+    # larger artifacts that we wouldn't want to interpolate over.
+
+    # Note that threshold should be in terms of the sampling frequency of signal.
+
+    nan_idx, nan_lengths = find_nan_clusters(signal)
+
+    # Create the normal mask, where we find all the spots where there are no nans.
+
+    nancluster_mask = np.ones(signal.shape,dtype=bool)
+
+
+    for i in range(len(nan_lengths)):
+        if nan_lengths[i] > threshold:
+            nancluster_mask[nan_idx[i]:nan_idx[i]+nan_lengths[i]]=False
+
+    return nancluster_mask
+
+def find_nan_clusters(signal):
+    # Find clusters of nans in a list/1D array, return two lists: one with the starting index of each cluster, and the second with
+    # the length of the cluster.
+
+    # Four cases:
+    # 1. Not in cluster and current value is nan. Need to append nan_idx with index, start counting cluster length.
+    # 2. Not in cluster and current value is not nan. No need to do anything.
+    # 3. In cluster and current value is nan. Need to keep track of cluster length.
+    # 4. In cluster and current value is not nan. Need to end cluster and append nan_lengths with counter - i
+    nan_idx = []
+    nan_lengths = []
+    in_cluster = False
+
+    for i in range(len(signal)):
+
+        if in_cluster:
+            if not(np.isnan(signal[i])):
+                in_cluster = False
+                nan_lengths.append(i-counter)
+                counter = 0
+
+
+        else:
+            if np.isnan(signal[i]):
+                in_cluster=True
+                nan_idx.append(i)
+                counter = i
+
+    if len(nan_idx) != len(nan_lengths):
+        nan_lengths.append(len(signal)-counter)
+
+
+    return [nan_idx,nan_lengths]
+
+def sig_smooth(data, sm_window, polyorder = 3, mode = 'nearest'):
+    """
+    Smooths the signal for pupil size
+
+    Uses scipy.signal savgol_filter
+
+    """
+    signal.savgol_filter(data.pupil_size,
+                         window_length = sm_window, # How large of a window for filtering in samples - bigger is more smooth but less fit on original signal
+                         polyorder = polyorder,
+                         mode = mode)
+
+
+def pre_proc(data, dspeed_th = 0.5, psize_th = 15, sm_window = 151, th_const = 0.5, polyorder = 3, mode = 'nearest'):
+
+    dspeed_forward = np.absolute(np.diff(data[i].pupil_size,prepend = np.nanmean(data[i].pupil_size)))
+    dspeed_backward = np.absolute(np.flip(np.diff(np.flip(data[i].pupil_size),prepend = np.nanmean(data[i].pupil_size))))
+    dspeed = np.fmax(dspeed_forward,dspeed_backward)
+    meddspeed = np.nanmedian(dspeed)
+    meanad = np.nanmedian(np.absolute(dspeed - meddspeed))
+
+    data[i].pupil_size[np.greater(dspeed, (meddspeed + th_const*meanad),where=~np.isnan(dspeed))] = np.nan
+
+    pup_med = np.nanmedian(data[i].pupil_size)
+    pup_mad = np.nanmedian(np.absolute(data[i].pupil_size - pup_med))
+
+    z_th = psize_th # Should be rather large - otherwise you'll end up throwing things out.
+
+    data[i].pupil_size[np.greater(np.absolute((data[i].pupil_size - pup_med)/pup_mad),z_th,where=~np.isnan(data[i].pupil_size))] = np.nan
+
+
+    mask = ~np.isnan(data[i].pupil_size)
+
+
+    # Normal interpolation with scipy
+    # f = interpolate.interp1d(data.timestamps[mask],
+    #                          data.pupil_size[mask],
+    #                          kind='linear',
+    #                         fill_value=np.nan)
+    # data.pupil_size = f(data.timestamps)
+
+    # Interpolation with numpy
+    data[i].pupil_size = np.interp(data[i].timestamps,
+                                data[i].timestamps[mask],
+                                data[i].pupil_size[mask])
+
+
+
+    pup_data = signal.savgol_filter(data[i].pupil_size,
+                                      window_length = sm_window, # How large of a window for filtering in samples - bigger is more smooth but less fit on original signal
+                                      polyorder = 3,
+                                      mode = 'nearest')
+
+    data[i].pupil_size = pup_data
+
+    return data
 
 
 
