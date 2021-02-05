@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="abra",
-    version="1.3",
+    version="1.4",
     # author="",
     author_email="abra.eyetracking@gmail.com",
     description="abra: open-source eye tracking data analysis",
@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/abra-eyetracking/abra-eyetracking",
     packages=setuptools.find_packages(),
-    install_requires=[   
+    install_requires=[
         'abra',
         'numpy',
         'scipy',
