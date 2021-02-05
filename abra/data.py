@@ -214,7 +214,7 @@ def find_end(elements, end_time, trial_markers, messages_dict, flag, start_time)
 
 def get_sample_rate(elements, both):
     if both:
-        return float(elements[5])
+        return float(elements[6])
     else:
         return float(elements[4])
 
