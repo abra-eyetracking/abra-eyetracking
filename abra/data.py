@@ -203,8 +203,8 @@ def tpm_read(timestamps_list, pupil_size_list, movement_list,
                 movement_list[1].append(np.nan)
             else:
                 timestamps_list.append(int(elements[0]))
-                pupil_size_list.append(float(elements[1]))
-                movement_list[0].append(float(elements[3]))  # x-axis
+                pupil_size_list.append(float(elements[3]))
+                movement_list[0].append(float(elements[1]))  # x-axis
                 movement_list[1].append(float(elements[2]))  # y-axis
 
         elif(eyes_recorded == "right"):
@@ -215,8 +215,8 @@ def tpm_read(timestamps_list, pupil_size_list, movement_list,
                 movement_list[1].append(np.nan)
             else:
                 timestamps_list.append(int(elements[0]))
-                pupil_size_list.append(float(elements[4]))
-                movement_list[0].append(float(elements[6]))  # x-axis
+                pupil_size_list.append(float(elements[6]))
+                movement_list[0].append(float(elements[4]))  # x-axis
                 movement_list[1].append(float(elements[5]))  # y-axis
         else:
             raise NameError("Define if eyes_recorded was either the left eye or the right eye")
@@ -228,8 +228,8 @@ def tpm_read(timestamps_list, pupil_size_list, movement_list,
             movement_list[1].append(np.nan)
         else:
             timestamps_list.append(int(elements[0]))
-            pupil_size_list.append(float(elements[1]))
-            movement_list[0].append(float(elements[3]))  # x-axis
+            pupil_size_list.append(float(elements[3]))
+            movement_list[0].append(float(elements[1]))  # x-axis
             movement_list[1].append(float(elements[2]))  # y-axis
     return timestamps_list, pupil_size_list, movement_list
 
@@ -679,8 +679,8 @@ class Data:
                 # Enforcing the length to be the defined window size
                 idx[non_zero_idx[0][0]+win_size:]=False
             epoch_pupil = self.pupil_size[idx]
-            epoch_movex = self.movement[1][idx]
-            epoch_movey = self.movement[0][idx]
+            epoch_movex = self.movement[0][idx]
+            epoch_movey = self.movement[1][idx]
 
             # Do baselining using the mean and standard deviation of the mean and variance
             if pupil_baseline:
