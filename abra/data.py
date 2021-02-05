@@ -1,10 +1,15 @@
+from scipy import interpolate, signal,stats
+from scipy.interpolate import interp1d
+from scipy.io import loadmat,savemat
 import numpy as np
 import re
-from . import utils
-from scipy.interpolate import interp1d
 import copy
+
+#From ABRA
+from . import utils
 from . import trial
 from . import session
+
 
 def is_number(s):
     try:
@@ -16,7 +21,6 @@ def is_number(s):
 
 def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d", start_msg=r"TRIAL \d{1,2} START",
          end_msg=r"TRIAL \d{1,2} END"):
-
     """
     Read method will read in the ascii file and extract the data
     "file_name" will take in the name of the file you are trying
@@ -50,19 +54,13 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
 
     Returns Data Object
     """
-
-
-
+    # TODO parse info
     if not filename.endswith(".asc"):
-        # raise ValueError("Extension must be .csv or .txt")
+        # Raise an error for checking file name extension
         pass
-
-
-    mode = mode.lower()
     if not mode == "d" or not mode == "u":
-        # raise ValueError("Mode must be 'd' for default or 'u' for user input")
+        # raise exception invalid mode
         pass
-
 
     with open(filename) as f:
         start_time = ""
@@ -76,14 +74,9 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
         pupil_size_list = []
         movement_list = [[], []]
         rate_list = {}
-        input_dict = {}
-        button_dict = {}
-        misc = []
-
         eyes_recorded = eyes_recorded.lower()
-
         # Default Mode
-        if mode. == "d":
+        if mode == "d":
             for num, line in enumerate(f, 1):
                 elements = line.split()
 
@@ -111,19 +104,9 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
                     elif elements[0] == "MSG":
                         messages_dict[int(elements[1])] = elements[2:]
 
-                    # Gets Input triggers
-                    elif elements[0] == "INPUT":
-                        input_dict = input_read(input_dict, elements)
-
-                    # Gets Button triggers
-                    elif elements[0] == "BUTTON":
-                        button_dict = button_read(button_dict, elements)
-
                     # Gets all events between START and END
                     elif not is_number(elements[1]):
                         events_dict = event_read(events_dict, elements, eyes_recorded, both_eyes_recorded)
-                    else:
-                        misc = misc_read(elements,misc)
 
 
         # User Defined Mode
@@ -131,7 +114,6 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
             # initializes the regular expressions for start and end markers
             start_msg = re.compile(start_msg)
             end_msg = re.compile(end_msg)
-
             for num, line in enumerate(f, 1):
                 elements = line.split()
                 # finds start time using user defined marker
@@ -156,32 +138,20 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
                     # will get pupil size, timestamps, and movements
                     if is_number(elements[0]):
                         timestamps_list, pupil_size_list, movement_list = tpm_read(timestamps_list, pupil_size_list, movement_list, elements, eyes_recorded, both_eyes_recorded)
-
                     # Gets messages between START and END markers
                     elif elements[0] == "MSG":
-                        messages_dict[int(elements[1])] = elements[2:]
-
-                    # Gets Input triggers
-                    elif elements[0] == "INPUT":
-                        input_dict = input_read(input_dict, elements)
-
-                    # Gets Button triggers
-                    elif elements[0] == "BUTTON":
-                        input_dict = button_read(button_dict, elements)
-
+                        messages_dict[elements[1]] = elements[2:]
                     # Gets all events between START and END markers
                     elif not is_number(elements[1]):
                         events_dict = event_read(events_dict, elements, eyes_recorded, both_eyes_recorded)
 
-                    else:
-                        misc = misc_read(elements,misc)
 
     # convert list to numpy array
     timestamps = np.array(timestamps_list)
     pupil_size = np.array(pupil_size_list)
     movement = np.array(movement_list)
     return Data(timestamps, pupil_size, movement, sample_rate, {}, messages_dict,
-                events_dict, trial_markers, button_dict, input_dict, misc)
+                events_dict, trial_markers)
 
 
 
@@ -214,7 +184,7 @@ def find_end(elements, end_time, trial_markers, messages_dict, flag, start_time)
 
 def get_sample_rate(elements, both):
     if both:
-        return float(elements[5])
+        return float(elements[6])
     else:
         return float(elements[4])
 
@@ -264,47 +234,6 @@ def tpm_read(timestamps_list, pupil_size_list, movement_list,
     return timestamps_list, pupil_size_list, movement_list
 
 
-def input_read(input_dict, elements):
-    input_num = int(elements[2])
-    if input_num not in input_dict:
-        input_dict[input_num] = []
-    input_dict[input_num].append(int(elements[1]))
-    # print(input_dict)
-
-    return input_dict
-
-
-def button_read(button_dict, elements):
-    button_num = int(elements[2])
-    button_press = int(elements[3])
-    if button_num not in button_dict:
-        button_dict[button_num] = [[],[]]
-
-    if button_press == 1:
-        button_dict[button_num][1].append(int(elements[1]))
-
-    elif button_press == 0:
-        button_dict[button_num][0].append(int(elements[1]))
-
-    return button_dict
-
-
-
-    button_name = f"{elements[0]} {elements[2]}"
-    # will extract left or right eye data from recording set set from both eye recordings
-
-    if (button_name not in button_dict):
-        button_dict[button_name] = [[],[]]
-    if(button_name in button_dict):
-        button_list_variable = int(elements[3])
-        temp_list = []
-        for var in event_list_variable:
-            temp_list.append(int(var))
-        event_list_variable = temp_list
-
-def misc_read(elements,misc):
-    misc.append([elements])
-    return misc
 
 def event_read(events_dict, elements, eyes_recorded, both_eyes_recorded):
     """
@@ -395,6 +324,208 @@ def remove_eye_blinks(abra_obj, buffer=50, interpolate='linear', inplace=False):
         return False
 
 
+def abra_preproc_pupil(data_, dspeed_th = 1, psize_th = 15, smooth=True,sm_window = 101,blink_buffer=50,interp_cluster_th=250,eye_dist_th=15):
+    # Remove Blinks
+    data = abra.remove_eye_blinks(data_,buffer=blink_buffer,interpolate='linear')
+
+    # Remove sections where eye movements occur
+    # Eye movement mask - create a series of distance values from center of screenshot
+
+    # FIRST make spots where distance deviates by more than 3 standard deviations nan.
+#     print(data)
+    eye_dist = np.sqrt((data.movement[0,:]-np.nanmedian(data.movement[0,:]))**2 + (data.movement[1,:]-np.nanmedian(data.movement[1,:]))**2)
+#     eye_dist = np.sqrt((data.movement[0,:]-500)**2 + (data.movement[1,:]-500)**2)
+
+    med_eye_dist = np.nanmedian(eye_dist)
+    mad_eye_dist = np.nanmedian(np.absolute(eye_dist - med_eye_dist))
+
+    data.pupil_size[np.greater(eye_dist,med_eye_dist+eye_dist_th*mad_eye_dist,where=~np.isnan(eye_dist))] = np.nan
+
+    # Remove Dilation Speed Outliers
+    # This works on the idea that the mean absolute deviation (MAD)
+    # gives a good estimate. First, calculate the differenced scores,
+    # i.e. the speed of dilation at each time point, then remove
+    # timepoints where that dilation speed exceeds the median plus
+    # some number of MADs.
+
+    # Note: np.diff returns NAN if either value is NAN, so do this before removing based just on size.
+
+    th_const = dspeed_th
+
+    dspeed_forward = np.absolute(np.diff(data.pupil_size,prepend = np.nanmean(data.pupil_size)))
+    dspeed_backward = np.absolute(np.flip(np.diff(np.flip(data.pupil_size),prepend = np.nanmean(data.pupil_size))))
+    dspeed = np.fmax(dspeed_forward,dspeed_backward)
+    meddspeed = np.nanmedian(dspeed)
+    meanad = np.nanmedian(np.absolute(dspeed - meddspeed))
+
+    data.pupil_size[np.greater(dspeed, (meddspeed + th_const*meanad),where=~np.isnan(dspeed))] = np.nan
+
+
+    # Remove Pupil Size Outliers
+    # Easy enough, remove pupil sizes that are greater than three mean absolute
+    # deviations from median (avoids being affected by outliers too much).
+    # However, this doesn't work as well as using speed.
+
+    # pup_mean = np.nanmean(data.pupil_size)
+    # pup_stdev = np.nanstd(data.pupil_size)
+    pup_med = np.nanmedian(data.pupil_size)
+    pup_mad = np.nanmedian(np.absolute(data.pupil_size - pup_med))
+
+    z_th = 15 # Should be rather large - otherwise you'll end up throwing things out.
+
+    data.pupil_size[np.greater(np.absolute((data.pupil_size - pup_med)/pup_mad),z_th,where=~np.isnan(data.pupil_size))] = np.nan
+
+
+    # Remove isolated data points
+
+    # TO-DO
+
+
+    # Interpolate
+    # Interpolation to fill missing data.
+    mask = ~np.isnan(data.pupil_size)
+
+    # Create a mask where clusters of nans go larger than interp_cluster_th (default 250 points, 500 ms) so we can remove those later.
+    # the custom function nan_cluster_mask returns an array the size of data.pupil_size, where it is true everywhere except where
+    # there is a continuous stretch of nans longer than interp_cluster_th.
+    cluster_mask = nan_cluster_mask(data.pupil_size,interp_cluster_th)
+    # Normal interpolation with scipy
+    # f = interpolate.interp1d(data.timestamps[mask],
+    #                          data.pupil_size[mask],
+    #                          kind='linear',
+    #                         fill_value=np.nan)
+    # data.pupil_size = f(data.timestamps)
+
+    # Interpolation with numpy
+    data.pupil_size = np.interp(data.timestamps,
+                                data.timestamps[mask],
+                                data.pupil_size[mask])
+
+    if smooth:
+        data.pupil_size = signal.savgol_filter(data.pupil_size,
+                                      window_length = sm_window, # How large of a window for filtering in samples - bigger is more smooth but less fit on original signal
+                                      polyorder = 3,
+                                      mode = 'nearest')
+
+    # Using the previous nan_cluster_mask (inverted), return the large sections to being nans.
+    data.pupil_size[~cluster_mask] = np.nan
+
+
+    return data
+
+def nan_cluster_mask(signal,threshold):
+    # Using the find_nan_clusters function (defined above), we find the starting index and length of every cluster of nans in a signal.
+    # Then, we create a mask over signal, similar to isnan, except we return False for spots where the nan clusters are too large.
+    # The use-case is for interpolation of data with mostly phasic artifacts where interpolation is fine, but occasionally there would be
+    # larger artifacts that we wouldn't want to interpolate over.
+
+    # Note that threshold should be in terms of the sampling frequency of signal.
+
+    nan_idx, nan_lengths = find_nan_clusters(signal)
+
+    # Create the normal mask, where we find all the spots where there are no nans.
+
+    nancluster_mask = np.ones(signal.shape,dtype=bool)
+
+
+    for i in range(len(nan_lengths)):
+        if nan_lengths[i] > threshold:
+            nancluster_mask[nan_idx[i]:nan_idx[i]+nan_lengths[i]]=False
+
+    return nancluster_mask
+
+def find_nan_clusters(signal):
+    # Find clusters of nans in a list/1D array, return two lists: one with the starting index of each cluster, and the second with
+    # the length of the cluster.
+
+    # Four cases:
+    # 1. Not in cluster and current value is nan. Need to append nan_idx with index, start counting cluster length.
+    # 2. Not in cluster and current value is not nan. No need to do anything.
+    # 3. In cluster and current value is nan. Need to keep track of cluster length.
+    # 4. In cluster and current value is not nan. Need to end cluster and append nan_lengths with counter - i
+    nan_idx = []
+    nan_lengths = []
+    in_cluster = False
+
+    for i in range(len(signal)):
+
+        if in_cluster:
+            if not(np.isnan(signal[i])):
+                in_cluster = False
+                nan_lengths.append(i-counter)
+                counter = 0
+
+
+        else:
+            if np.isnan(signal[i]):
+                in_cluster=True
+                nan_idx.append(i)
+                counter = i
+
+    if len(nan_idx) != len(nan_lengths):
+        nan_lengths.append(len(signal)-counter)
+
+
+    return [nan_idx,nan_lengths]
+
+def sig_smooth(data, sm_window, polyorder = 3, mode = 'nearest'):
+    """
+    Smooths the signal for pupil size
+
+    Uses scipy.signal savgol_filter
+
+    """
+    signal.savgol_filter(data.pupil_size,
+                         window_length = sm_window, # How large of a window for filtering in samples - bigger is more smooth but less fit on original signal
+                         polyorder = polyorder,
+                         mode = mode)
+
+
+def pre_proc(data, dspeed_th = 0.5, psize_th = 15, sm_window = 151, th_const = 0.5, polyorder = 3, mode = 'nearest'):
+
+    dspeed_forward = np.absolute(np.diff(data[i].pupil_size,prepend = np.nanmean(data[i].pupil_size)))
+    dspeed_backward = np.absolute(np.flip(np.diff(np.flip(data[i].pupil_size),prepend = np.nanmean(data[i].pupil_size))))
+    dspeed = np.fmax(dspeed_forward,dspeed_backward)
+    meddspeed = np.nanmedian(dspeed)
+    meanad = np.nanmedian(np.absolute(dspeed - meddspeed))
+
+    data[i].pupil_size[np.greater(dspeed, (meddspeed + th_const*meanad),where=~np.isnan(dspeed))] = np.nan
+
+    pup_med = np.nanmedian(data[i].pupil_size)
+    pup_mad = np.nanmedian(np.absolute(data[i].pupil_size - pup_med))
+
+    z_th = psize_th # Should be rather large - otherwise you'll end up throwing things out.
+
+    data[i].pupil_size[np.greater(np.absolute((data[i].pupil_size - pup_med)/pup_mad),z_th,where=~np.isnan(data[i].pupil_size))] = np.nan
+
+
+    mask = ~np.isnan(data[i].pupil_size)
+
+
+    # Normal interpolation with scipy
+    # f = interpolate.interp1d(data.timestamps[mask],
+    #                          data.pupil_size[mask],
+    #                          kind='linear',
+    #                         fill_value=np.nan)
+    # data.pupil_size = f(data.timestamps)
+
+    # Interpolation with numpy
+    data[i].pupil_size = np.interp(data[i].timestamps,
+                                data[i].timestamps[mask],
+                                data[i].pupil_size[mask])
+
+
+
+    pup_data = signal.savgol_filter(data[i].pupil_size,
+                                      window_length = sm_window, # How large of a window for filtering in samples - bigger is more smooth but less fit on original signal
+                                      polyorder = 3,
+                                      mode = 'nearest')
+
+    data[i].pupil_size = pup_data
+
+    return data
+
+
 
 class Data:
     """
@@ -404,45 +535,28 @@ class Data:
 
     - Stores data values of timestamps, pupil_size, movement, sample_rate,
       calibration, messages, events, trial_markers
-
     - Value Types:
         - timestamps: List (1xn)
-
         - pupil_size: List (1xn)
-
         - Movement: List (2xn)
             > index 0: x-coordinates
             > index 1: y-coordinates
-
         - sample_rate: int
-
         -calibration: Dictionary (not implimented yet)
-
         - message: Dictionary
             > key: timestamp integer
             > value: message
-
         - events: Dictionary
             > key: event name
             > value: list of [start timestamp, end timestamp,
                               avg y-coordinate, avg x-coordinate,
                               avg pupil size]
-
         - trial_markers: Dictionary
             > key: 'Start' or 'End'
             > value: list of time stamps
-
-        -buttons: Dictionary
-            > key: button number
-            > value: list [unpress (0)] and [press (1)]
-                > index 0 is unpress
-                > index 1 is press
     """
-
-
     def __init__(self, timestamps, pupil_size, movement, sample_rate,
-                 calibration, messages, events, trial_markers, buttons,
-                 inputs, misc):
+                 calibration, messages, events, trial_markers):
         self.timestamps = timestamps
         self.pupil_size = pupil_size
         self.movement = movement
@@ -451,68 +565,24 @@ class Data:
         self.messages = messages
         self.events = events
         self.trial_markers = trial_markers
-        self.buttons = buttons
-        self.inputs = inputs
-        self.misc = misc
 
 
 
-    def create_session(self, conditions=None, start_marker = 'msg',
-                       end_marker = 'msg', input_start = None, input_end = None,
-                       button_start = None, button_end = None):
+    def create_session(self, conditions=None):
         """
         This function splits the pupil size and timestamp data into
         its respective trials and returns an array of trial class
         objects
 
-        - condition: event condition
-
-        - start_marker: type of marker set to identify the start of the session
-            - 'msg': defualt marker type. Inputs message in data to identify start
-            - 'input': Uses an input marker to symbolize the start of the session
-            - 'button': Uses buttons events to identify the start of a session
-
-        - end_marker: type of marker set to identify the end of the session
-            - 'msg': defualt marker type. Inputs message in data to identify end
-            - 'input': Uses an input marker to symbolize the end of the session
-            - 'button': Uses buttons events to identify the end of a session
-
-        - input_start: input number (eg. input_start = 1)
-
-        - input_end: input number (eg. input_end = 2)
-
-        - button_start: button number and whether you want the press event or
-                        release event. (eg. button_start = 1_1 for press
-                                            button_start = 1_0 for release)
-
-        - button_end: button number and whether you want the press event or
-                      release event (eg. button_start = 1_1 for press
-                                         button_start = 1_0 for release)
-
+        condition: event condition
         """
-
-
+        t_Mark = self.trial_markers
         t_Time = self.timestamps
-        if(start_marker.lower() == 'msg'):
-            t_Mark = self.trial_markers
-            start = t_Mark['start']
-
-        elif(start_marker.lower() == 'input'):
-            start = self.inputs[input_start]
-        elif(start_marker.lower() == 'button'):
-            start = self.buttons[button_start[0]][button_start[1]]
-
-        if(end_marker.lower() == 'msg'):
-            end = t_Mark['end']
-        elif end_marker.lower() == 'input':
-            end = self.inputs[input_end]
-        elif end_marker.lower() == 'button':
-            end = self.buttons[button_end[0]][button_start[1]]
-
+        start = t_Mark['start']
+        end  = t_Mark['end']
 
         # All trial start and end markers in array ([start,end])
         trial_IDX = []
-
         for i in range(len(start)):
             temp = []
             st = start[i]
@@ -579,8 +649,7 @@ class Data:
 
         return session.Session(np.array(trials), self.sample_rate, conditions)
 
-    def create_epochs(self, event_timestamps, conditions=None, pre_event=200,
-                      post_event=200, pupil_baseline=None):
+    def create_epochs(self, event_timestamps, conditions=None, pre_event=200, post_event=200, pupil_baseline=None):
         """
         Create Time Locking Epochs
 
@@ -610,8 +679,8 @@ class Data:
                 # Enforcing the length to be the defined window size
                 idx[non_zero_idx[0][0]+win_size:]=False
             epoch_pupil = self.pupil_size[idx]
-            epoch_movex = self.movement[1][idx]
-            epoch_movey = self.movement[0][idx]
+            epoch_movex = self.movement[0][idx]
+            epoch_movey = self.movement[1][idx]
 
             # Do baselining using the mean and standard deviation of the mean and variance
             if pupil_baseline:
