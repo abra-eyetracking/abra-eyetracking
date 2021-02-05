@@ -83,7 +83,7 @@ def read(filename, eyes_recorded = "auto", both_eyes_recorded = False, mode="d",
         eyes_recorded = eyes_recorded.lower()
 
         # Default Mode
-        if mode. == "d":
+        if mode == "d":
             for num, line in enumerate(f, 1):
                 elements = line.split()
 
