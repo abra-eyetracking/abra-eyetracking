@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="abra",
-    version="1.4",
+    version="1.4.1",
     # author="",
     author_email="abra.eyetracking@gmail.com",
     description="abra: open-source eye tracking data analysis",
